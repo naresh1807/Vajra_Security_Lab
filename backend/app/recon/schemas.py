@@ -49,3 +49,33 @@ class ReconJobOut(BaseModel):
 class ReconStartResponse(BaseModel):
     job: ReconJobOut
     message: str
+
+
+class ToolCommandPart(BaseModel):
+    token: str
+    meaning: str
+
+
+class ReconTool(BaseModel):
+    name: str
+    kind: str
+    role: str
+    status: str
+    command: str
+    command_parts: list[ToolCommandPart]
+    notes: str
+
+
+class ReconToolStage(BaseModel):
+    key: str
+    title: str
+    active: bool
+    what_vajra_does: str
+    tools: list[ReconTool]
+
+
+class ReconToolReference(BaseModel):
+    target: str
+    rate_limit_rps: float
+    note: str
+    stages: list[ReconToolStage]

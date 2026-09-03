@@ -5,8 +5,9 @@ from app.core.database import get_db
 from app.core.jobs import QueueUnavailableError, cancel_recon_job, dispatch_recon_job
 from app.projects.models import Project
 from app.recon.models import Asset, ReconJob, ReconJobStatus
-from app.recon.schemas import AssetOut, ReconJobOut, ReconStartResponse
+from app.recon.schemas import AssetOut, ReconJobOut, ReconStartResponse, ReconToolReference
 from app.recon.tasks import run_recon_job
+from app.recon.tool_reference import build_tool_reference
 
 router = APIRouter(prefix="/api/projects/{project_id}", tags=["recon"])
 
@@ -77,6 +78,12 @@ def cancel_job(project_id: int, job_id: int, db: Session = Depends(get_db)) -> R
 def list_recon_jobs(project_id: int, db: Session = Depends(get_db)) -> list[ReconJob]:
     _get_project_or_404(db, project_id)
     return db.query(ReconJob).filter(ReconJob.project_id == project_id).order_by(ReconJob.started_at.desc()).all()
+
+
+@router.get("/recon/tool-reference", response_model=ReconToolReference)
+def recon_tool_reference(project_id: int, db: Session = Depends(get_db)) -> ReconToolReference:
+    project = _get_project_or_404(db, project_id)
+    return ReconToolReference(**build_tool_reference(project))
 
 
 @router.get("/assets", response_model=list[AssetOut])

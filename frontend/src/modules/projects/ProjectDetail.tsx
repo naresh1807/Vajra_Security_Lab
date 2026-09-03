@@ -284,13 +284,21 @@ export default function ProjectDetail() {
         <Card className="mb-6">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-100">Vajra Recon</h2>
-            <button
-              onClick={onStartRecon}
-              disabled={starting || jobActive}
-              className="rounded-md bg-vajra-accent px-4 py-2 text-sm font-medium text-white hover:bg-vajra-accent/90 disabled:opacity-50"
-            >
-              {jobActive ? "Recon Running..." : "Start Recon"}
-            </button>
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/projects/${projectId}/recon-tools`}
+                className="rounded-md border border-vajra-border px-3 py-2 text-xs text-slate-300 hover:bg-white/5"
+              >
+                Show underlying tools →
+              </Link>
+              <button
+                onClick={onStartRecon}
+                disabled={starting || jobActive}
+                className="rounded-md bg-vajra-accent px-4 py-2 text-sm font-medium text-white hover:bg-vajra-accent/90 disabled:opacity-50"
+              >
+                {jobActive ? "Recon Running..." : "Start Recon"}
+              </button>
+            </div>
           </div>
           <p className="mb-3 text-xs text-slate-500">
             Passive subdomain discovery (certificate transparency) → ScopeGuard → DNS resolution → live-host

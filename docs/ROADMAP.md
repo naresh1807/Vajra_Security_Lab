@@ -102,10 +102,19 @@ describes a single workstation view: assets/endpoints left, HTTP/analysis
 center, Copilot right, evidence/notes/history bottom. Large front-end
 change; do it only if the page-based flow proves limiting.
 
-### A7. Progressive tool disclosure — §41
-`tools/adapter.py` records the displayed command and tool version.
-Surface it in the UI: "Show underlying tool → show command → explain
-command" on each recon step.
+### A7. Progressive tool disclosure — §41 — DONE
+`backend/app/recon/tool_reference.py` is a pure per-project breakdown of
+the recon toolchain: for each pipeline stage (subdomain discovery, DNS
+resolution, live-host probing, tech detection, metadata discovery,
+crawling) it lists the built-in and optional-external tools, each with
+its role, an active/passive marker, the exact command with the project's
+real target and rate limit substituted in, and a flag-by-flag
+explanation. External tools report their real enabled/disabled config.
+`GET /api/projects/{id}/recon/tool-reference`, page at
+`/projects/:id/recon-tools` ("Show underlying tools →" from the recon
+card). `backend/tests/test_recon_tool_reference.py` (5 tests). Recon job
+notes still carry what actually ran on a given run; this is the
+"learn the tooling" companion.
 
 ### A8. Recon URL + parameter discovery — §7, Phase 3
 Only optional Katana GET-endpoint crawling exists. A general (still
@@ -167,10 +176,8 @@ revisit only if cipher/protocol inspection becomes a requirement.
 4. ~~A4 Authentication Flow Analyzer~~ — done.
 5. ~~A5 Access Control Workbench~~ — done.
 6. ~~A3 Learning Analytics / Skill Map~~ — done.
-7. **Section C — production deployment** — next when ready to host.
-8. A1 remainder — the §42 beginner→professional transition.
-9. A7 progressive tool disclosure; A8 recon URL/param discovery; A6 four-panel UI.
-
-All of section A's medium/high-value items (A1–A5) are done. What's left
-in A is A6 (large front-end restructure, do only if the page-based flow
-proves limiting), A7, A8, A9, and A10 (deliberately deferred).
+7. ~~A7 progressive tool disclosure~~ — done.
+8. **A8 recon URL / parameter discovery** — next.
+9. Section C — production deployment when ready to host.
+10. A1 remainder — the §42 beginner→professional transition.
+11. A9 screenshot annotate; A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.

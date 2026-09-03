@@ -23,6 +23,7 @@ import { useAuth } from "./auth/AuthContext";
 import Login from "./auth/Login";
 import Security from "./auth/Security";
 import Surface from "./modules/surface/Surface";
+import ReconToolchain from "./modules/recon/ReconToolchain";
 import BundleVerifier from "./modules/evidence/BundleVerifier";
 import History from "./modules/history/History";
 
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/projects/:id/parameters" element={<Parameters />} />
         <Route path="/projects/:id/auth-flow" element={<AuthFlow />} />
         <Route path="/projects/:id/surface" element={<Surface />} />
+        <Route path="/projects/:id/recon-tools" element={<ReconToolchain />} />
         <Route path="/projects/:id/analyzer" element={<Analyzer />} />
         <Route path="/projects/:id/diff" element={<Diff />} />
         <Route path="/projects/:id/access-control" element={<AccessControlWorkbench />} />

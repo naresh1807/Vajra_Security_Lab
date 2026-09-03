@@ -25,6 +25,7 @@ import type {
   ProjectDetail,
   Readiness,
   ReconJob,
+  ReconToolReference,
   Report,
   PracticeLab,
   PracticeResponse,
@@ -183,6 +184,8 @@ export const api = {
   startRecon: (projectId: number) =>
     request<{ job: ReconJob; message: string }>(`/projects/${projectId}/recon/start`, { method: "POST" }),
   listReconJobs: (projectId: number) => request<ReconJob[]>(`/projects/${projectId}/recon/jobs`),
+  getReconToolReference: (projectId: number) =>
+    request<ReconToolReference>(`/projects/${projectId}/recon/tool-reference`),
   listAssets: (projectId: number) => request<Asset[]>(`/projects/${projectId}/assets`),
     listDiscoveredEndpoints: (projectId: number) => request<DiscoveredEndpoint[]>(`/projects/${projectId}/surface/endpoints`),
     getDiscoveredEndpoint: (projectId: number, endpointId: number) =>

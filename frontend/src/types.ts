@@ -100,6 +100,36 @@ export type ReconStage =
   | "prioritization"
   | "done";
 
+export interface ReconToolCommandPart {
+  token: string;
+  meaning: string;
+}
+
+export interface ReconTool {
+  name: string;
+  kind: "built-in" | "optional external";
+  role: string;
+  status: string;
+  command: string;
+  command_parts: ReconToolCommandPart[];
+  notes: string;
+}
+
+export interface ReconToolStage {
+  key: string;
+  title: string;
+  active: boolean;
+  what_vajra_does: string;
+  tools: ReconTool[];
+}
+
+export interface ReconToolReference {
+  target: string;
+  rate_limit_rps: number;
+  note: string;
+  stages: ReconToolStage[];
+}
+
 export interface ReconJob {
   id: number;
   project_id: number;
