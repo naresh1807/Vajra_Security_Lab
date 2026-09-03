@@ -24,6 +24,7 @@ import Login from "./auth/Login";
 import Security from "./auth/Security";
 import Surface from "./modules/surface/Surface";
 import ReconToolchain from "./modules/recon/ReconToolchain";
+import Workstation from "./modules/workstation/Workstation";
 import BundleVerifier from "./modules/evidence/BundleVerifier";
 import History from "./modules/history/History";
 
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/projects" element={<ProjectsList />} />
         <Route path="/projects/new" element={<CreateProject />} />
         <Route path="/projects/:id" element={<ProjectDetail />} />
+        <Route path="/projects/:id/workstation" element={<Workstation />} />
         <Route path="/projects/:id/http" element={<HttpInspector />} />
         <Route path="/projects/:id/js" element={<JsInspector />} />
         <Route path="/projects/:id/api-map" element={<ApiMapper />} />

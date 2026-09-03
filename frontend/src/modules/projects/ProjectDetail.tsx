@@ -193,8 +193,14 @@ export default function ProjectDetail() {
             </label>
             <Badge tone={project.status === "active" ? "allowed" : "neutral"}>{project.status}</Badge>
             <Link
-              to={`/projects/${projectId}/http`}
+              to={`/projects/${projectId}/workstation`}
               className="rounded-md bg-vajra-accent px-3 py-1.5 text-xs font-medium text-white hover:bg-vajra-accent/90"
+            >
+              Open Workstation →
+            </Link>
+            <Link
+              to={`/projects/${projectId}/http`}
+              className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
             >
               HTTP Inspector →
             </Link>
@@ -503,6 +509,7 @@ export default function ProjectDetail() {
       <CopilotPanel
         projectId={projectId}
         selection={selectedAsset ? { kind: "asset", asset: selectedAsset } : null}
+        showNextAction={project.mode === "advanced"}
       />
     </div>
   );

@@ -23,10 +23,14 @@ export function CopilotPanel({
   projectId,
   selection,
   contextRef,
+  showNextAction = true,
 }: {
   projectId: number;
   selection: CopilotSelection | null;
   contextRef?: CopilotContextRef;
+  // Set false when the surrounding page already shows the recommended-next-step
+  // banner (ProjectDetail, Workstation) so it isn't rendered twice.
+  showNextAction?: boolean;
 }) {
   const navigate = useNavigate();
   // Hunt Mode drives how much the Copilot volunteers. `guided` is the
@@ -70,8 +74,9 @@ export function CopilotPanel({
   }
 
   useEffect(() => {
+    if (!showNextAction) return;
     api.nextBestAction(projectId).then(setNextAction).catch(() => setNextAction(null));
-  }, [projectId, selection]);
+  }, [projectId, selection, showNextAction]);
 
   useEffect(() => {
     if (!selection) {
@@ -120,7 +125,9 @@ export function CopilotPanel({
         </div>
       </div>
 
-      {nextAction && <NextStepCard projectId={projectId} action={nextAction} mode={mode} />}
+      {showNextAction && nextAction && (
+        <NextStepCard projectId={projectId} action={nextAction} mode={mode} />
+      )}
 
       {!selection && (
         <Card>

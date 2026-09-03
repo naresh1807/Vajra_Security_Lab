@@ -120,11 +120,17 @@ links land ready to act. `backend/tests/test_access_control_workbench.py`
 (5 tests). Never sends a request - §17's "controlled accounts and
 authorized environments only" is enforced by design.
 
-### A6. Four-panel workstation UI — §45
-Current UI is page-per-module with a Copilot side panel. The spec
-describes a single workstation view: assets/endpoints left, HTTP/analysis
-center, Copilot right, evidence/notes/history bottom. Large front-end
-change; do it only if the page-based flow proves limiting.
+### A6. Four-panel workstation UI — §45 — DONE
+`frontend/src/modules/workstation/Workstation.tsx` at
+`/projects/:id/workstation` is the §45 cockpit: attack surface (assets +
+endpoints) on the left, the recommended next action and focus detail in
+the centre, the Hunt Copilot on the right, and Investigations / History /
+Playbook tabs along the bottom. It's a new composition view - the
+existing per-module pages stay as the deep-dive workspaces, and every
+panel deep-links into them. `Layout` drops the global nav sidebar on this
+route so it's a true cockpit. Reached via a prominent "Open Workstation"
+button on the project page. Verified end to end with a headless browser
+(register → create project → workstation, no console errors).
 
 ### A7. Progressive tool disclosure — §41 — DONE
 `backend/app/recon/tool_reference.py` is a pure per-project breakdown of
@@ -229,12 +235,15 @@ revisit only if cipher/protocol inspection becomes a requirement.
 7. ~~A7 progressive tool disclosure~~ — done.
 8. ~~A8 recon URL / parameter discovery~~ — done.
 9. ~~A9 screenshot annotate~~ — done.
-10. Section C — production deployment when ready to host.
-11. A1 remainder — mostly done (stage-aware Next-Best-Action, mode-gated
-    guidance, per-project recon pipeline switches); only custom multi-step
-    workflows left.
-12. A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.
+10. ~~Section C — production artifacts hardened~~ (deployment to a real
+    host still needs a host — see C).
+11. ~~A1 remainder~~ — done (stage-aware Next-Best-Action, mode-gated
+    guidance, per-project recon pipeline switches, Hunt Playbook).
+12. ~~A6 four-panel Workstation UI~~ — done.
 
-Section A: every computed-analysis and evidence feature the spec asks for
-is built. What's left is the A6 UI restructure and custom workflows -
-both optional.
+**Everything in this roadmap is built.** A10 (standalone Configuration
+Analyzer / deep TLS inspection) remains deliberately deferred - its
+signals would duplicate Information Exposure and httpx already verifies
+certificates. The only work left is operational: deploying the hardened
+Compose stack to an actual host (section C), which needs infrastructure,
+not code.
