@@ -6,10 +6,24 @@ from starlette.background import BackgroundTask
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.evidence.annotations import AnnotationError, validate_annotations
 from app.evidence.models import EvidenceAttachment
 from app.evidence.export import EvidenceBundleError, build_evidence_bundle, remove_bundle
-from app.evidence.schemas import EvidenceAttachmentOut, EvidenceBundleVerificationOut, EvidencePackageOut
-from app.evidence.service import build_evidence_package, delete_attachment, save_attachment, to_attachment_out, UploadValidationError
+from app.evidence.schemas import (
+    EvidenceAttachmentOut,
+    EvidenceAttachmentUpdate,
+    EvidenceBundleVerificationOut,
+    EvidencePackageOut,
+)
+from app.evidence.service import (
+    build_evidence_package,
+    delete_attachment,
+    replace_attachment_file,
+    save_attachment,
+    to_attachment_out,
+    update_attachment,
+    UploadValidationError,
+)
 from app.evidence.verify import EvidenceVerificationLimitError, verify_evidence_bundle
 from app.investigations.models import Investigation
 from app.projects.models import Project
@@ -101,13 +115,66 @@ def export_evidence_bundle(project_id: int, inv_id: int, db: Session = Depends(g
     )
 
 
-@router.delete("/api/projects/{project_id}/investigations/{inv_id}/evidence/{attachment_id}", status_code=204)
-def delete_evidence(project_id: int, inv_id: int, attachment_id: int, db: Session = Depends(get_db)) -> None:
-    _get_investigation_or_404(db, project_id, inv_id)
+def _attachment_or_404(db: Session, inv_id: int, attachment_id: int) -> EvidenceAttachment:
     attachment = db.get(EvidenceAttachment, attachment_id)
     if attachment is None or attachment.investigation_id != inv_id:
         raise HTTPException(status_code=404, detail="Attachment not found")
-    delete_attachment(db, attachment)
+    return attachment
+
+
+@router.patch(
+    "/api/projects/{project_id}/investigations/{inv_id}/evidence/{attachment_id}",
+    response_model=EvidenceAttachmentOut,
+)
+def update_evidence(
+    project_id: int,
+    inv_id: int,
+    attachment_id: int,
+    payload: EvidenceAttachmentUpdate,
+    db: Session = Depends(get_db),
+) -> dict:
+    _get_investigation_or_404(db, project_id, inv_id)
+    attachment = _attachment_or_404(db, inv_id, attachment_id)
+    annotations = None
+    if payload.annotations is not None:
+        try:
+            annotations = validate_annotations(payload.annotations)
+        except AnnotationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return to_attachment_out(
+        update_attachment(db, attachment, caption=payload.caption, annotations=annotations)
+    )
+
+
+@router.put(
+    "/api/projects/{project_id}/investigations/{inv_id}/evidence/{attachment_id}/image",
+    response_model=EvidenceAttachmentOut,
+)
+async def replace_evidence_image(
+    project_id: int,
+    inv_id: int,
+    attachment_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Replace the stored screenshot with a flattened version (markup baked
+    into the pixels); clears the non-destructive annotation list."""
+    _get_investigation_or_404(db, project_id, inv_id)
+    attachment = _attachment_or_404(db, inv_id, attachment_id)
+    data = await file.read()
+    try:
+        updated = replace_attachment_file(
+            db, attachment, file.filename or "screenshot.png", file.content_type or "", data
+        )
+    except UploadValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return to_attachment_out(updated)
+
+
+@router.delete("/api/projects/{project_id}/investigations/{inv_id}/evidence/{attachment_id}", status_code=204)
+def delete_evidence(project_id: int, inv_id: int, attachment_id: int, db: Session = Depends(get_db)) -> None:
+    _get_investigation_or_404(db, project_id, inv_id)
+    delete_attachment(db, _attachment_or_404(db, inv_id, attachment_id))
 
 
 @router.get("/api/evidence/{attachment_id}/file")

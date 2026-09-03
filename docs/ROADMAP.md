@@ -131,9 +131,18 @@ summary/notes, `VAJRA_WAYBACK_*` settings, `backend/tests/test_wayback.py`
 (7 tests). General active crawling beyond opt-in Katana remains out of
 scope by design.
 
-### A9. Screenshot annotate + capture — §32
-Captions only. No drawing/markup, no headless capture (no browser in the
-stack), and "compare" is side-by-side, not a pixel diff.
+### A9. Screenshot annotate — §32 — DONE (markup; capture still N/A)
+Screenshots now carry a non-destructive markup overlay: highlight boxes,
+opaque redaction boxes, and text labels in image-relative coordinates,
+stored on the attachment (`annotations` JSON column, migration
+`a1c4e7b902d5`), validated by `app/evidence/annotations.py`, editable and
+re-saved freely. `AnnotationEditor` (drag to draw) also offers "Flatten &
+replace", which composites the markup into a new PNG client-side and
+swaps the stored file via `PUT .../evidence/{id}/image` (clearing the
+overlay). The evidence bundle manifest flags any screenshot whose
+redactions are not baked in, with a per-file `has_unbaked_annotations`
+and a warning. `backend/tests/test_evidence_annotations.py` (5 tests).
+Automated capture stays out of scope - no headless browser in the stack.
 
 ### A10. Configuration Analyzer / full TLS Analyzer — §22
 Deliberately omitted: a standalone Configuration Analyzer would duplicate
@@ -188,9 +197,10 @@ revisit only if cipher/protocol inspection becomes a requirement.
 6. ~~A3 Learning Analytics / Skill Map~~ — done.
 7. ~~A7 progressive tool disclosure~~ — done.
 8. ~~A8 recon URL / parameter discovery~~ — done.
-9. Section C — production deployment when ready to host.
-10. A1 remainder — the §42 beginner→professional transition.
-11. A9 screenshot annotate; A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.
+9. ~~A9 screenshot annotate~~ — done.
+10. Section C — production deployment when ready to host.
+11. A1 remainder — the §42 beginner→professional transition.
+12. A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.
 
-Section A is now down to A1-remainder, A9, and A6. Every computed
-analysis feature the spec asks for is built.
+Section A is now down to A1-remainder and A6. Every computed-analysis and
+evidence feature the spec asks for is built.

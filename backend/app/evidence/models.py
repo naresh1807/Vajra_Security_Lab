@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -30,6 +30,12 @@ class EvidenceAttachment(Base):
     file_path: Mapped[str] = mapped_column(String(500))
     size_bytes: Mapped[int] = mapped_column(Integer)
     caption: Mapped[str] = mapped_column(Text, default="")
+
+    # Non-destructive markup drawn over the screenshot (Section 32 "Annotate").
+    # A list of shapes in image-relative coordinates (0..1). Redaction boxes
+    # render opaque in the app; they are only *baked into the image file* when
+    # the hunter uses "Flatten & replace", which clears this list.
+    annotations: Mapped[list[dict]] = mapped_column(JSON, default=list)
 
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 

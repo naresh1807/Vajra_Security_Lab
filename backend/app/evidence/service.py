@@ -71,6 +71,57 @@ def save_attachment(
     return attachment
 
 
+def update_attachment(
+    db: Session,
+    attachment: EvidenceAttachment,
+    *,
+    caption: str | None = None,
+    annotations: list[dict] | None = None,
+) -> EvidenceAttachment:
+    if caption is not None:
+        attachment.caption = caption
+    if annotations is not None:
+        attachment.annotations = annotations
+    db.commit()
+    db.refresh(attachment)
+    return attachment
+
+
+def replace_attachment_file(
+    db: Session, attachment: EvidenceAttachment, filename: str, content_type: str, data: bytes
+) -> EvidenceAttachment:
+    """Swap the stored image for a flattened (baked-in) version. The markup
+    is now part of the pixels, so the non-destructive annotation list is
+    cleared - what you see is what a bundle would contain."""
+    if content_type not in settings.allowed_upload_content_types:
+        raise UploadValidationError(
+            f"Unsupported file type '{content_type}'. Evidence uploads are screenshots only: "
+            f"{', '.join(settings.allowed_upload_content_types)}."
+        )
+    if len(data) > settings.max_upload_bytes:
+        raise UploadValidationError(f"File too large ({len(data)} bytes) - max is {settings.max_upload_bytes} bytes.")
+
+    directory = _investigation_dir(attachment.project_id, attachment.investigation_id)
+    safe_name = f"{uuid.uuid4().hex}_{Path(filename).name}"
+    full_path = directory / safe_name
+    full_path.write_bytes(data)
+
+    old_path = attachment.file_path
+    attachment.file_path = str(full_path)
+    attachment.filename = filename
+    attachment.content_type = content_type
+    attachment.size_bytes = len(data)
+    attachment.annotations = []
+    db.commit()
+    db.refresh(attachment)
+    if old_path and old_path != str(full_path):
+        try:
+            os.remove(old_path)
+        except OSError:
+            pass
+    return attachment
+
+
 def delete_attachment(db: Session, attachment: EvidenceAttachment) -> None:
     try:
         os.remove(attachment.file_path)
@@ -89,6 +140,7 @@ def to_attachment_out(attachment: EvidenceAttachment) -> dict:
         "content_type": attachment.content_type,
         "size_bytes": attachment.size_bytes,
         "caption": attachment.caption,
+        "annotations": list(attachment.annotations or []),
         "uploaded_at": attachment.uploaded_at,
         "url": attachment_url(attachment.id),
     }

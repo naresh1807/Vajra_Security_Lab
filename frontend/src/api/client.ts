@@ -9,6 +9,7 @@ import type {
   Asset,
   CreateInvestigationPayload,
   DiffResult,
+  EvidenceAnnotation,
   EvidenceAttachment,
   EvidencePackage,
   EvidenceBundleVerification,
@@ -75,10 +76,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 // Separate from request(): a FormData body must NOT get an explicit
 // Content-Type - the browser sets its own multipart boundary. request()
 // always forces application/json, which would corrupt the upload.
-async function uploadFile<T>(path: string, formData: FormData): Promise<T> {
+async function uploadFile<T>(path: string, formData: FormData, method: "POST" | "PUT" = "POST"): Promise<T> {
   const csrf = document.cookie.split("; ").find((row) => row.startsWith("vajra_csrf="))?.split("=").slice(1).join("=");
   const res = await fetch(`${BASE}${path}`, {
-    method: "POST", body: formData, credentials: "same-origin",
+    method, body: formData, credentials: "same-origin",
     headers: csrf ? { "X-CSRF-Token": decodeURIComponent(csrf) } : {},
   });
   if (!res.ok) {
@@ -308,6 +309,25 @@ export const api = {
   },
   listEvidence: (projectId: number, invId: number) =>
     request<EvidenceAttachment[]>(`/projects/${projectId}/investigations/${invId}/evidence`),
+  updateEvidence: (
+    projectId: number,
+    invId: number,
+    attachmentId: number,
+    payload: { caption?: string; annotations?: EvidenceAnnotation[] },
+  ) =>
+    request<EvidenceAttachment>(
+      `/projects/${projectId}/investigations/${invId}/evidence/${attachmentId}`,
+      { method: "PATCH", body: JSON.stringify(payload) },
+    ),
+  replaceEvidenceImage: (projectId: number, invId: number, attachmentId: number, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return uploadFile<EvidenceAttachment>(
+      `/projects/${projectId}/investigations/${invId}/evidence/${attachmentId}/image`,
+      formData,
+      "PUT",
+    );
+  },
   deleteEvidence: (projectId: number, invId: number, attachmentId: number) =>
     request<void>(`/projects/${projectId}/investigations/${invId}/evidence/${attachmentId}`, { method: "DELETE" }),
   getEvidencePackage: (projectId: number, invId: number) =>

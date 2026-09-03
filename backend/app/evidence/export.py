@@ -137,6 +137,7 @@ def build_evidence_bundle(db: Session, project: Project, investigation: Investig
             attachments_by_id = {attachment.id: attachment for attachment in investigation.evidence_attachments}
             for attachment_out in package.attachments:
                 attachment = attachments_by_id.get(attachment_out.id)
+                unbaked = list(attachment.annotations or []) if attachment is not None else []
                 entry = {
                     "attachment_id": attachment_out.id,
                     "original_filename": attachment_out.filename,
@@ -144,7 +145,17 @@ def build_evidence_bundle(db: Session, project: Project, investigation: Investig
                     "content_type": attachment_out.content_type,
                     "declared_size_bytes": attachment_out.size_bytes,
                     "unredacted_user_upload": True,
+                    "has_unbaked_annotations": bool(unbaked),
+                    "annotations": unbaked,
                 }
+                if unbaked:
+                    redactions = sum(1 for shape in unbaked if shape.get("type") == "redact")
+                    warnings.append(
+                        f"Screenshot attachment #{attachment_out.id} has {len(unbaked)} annotation(s)"
+                        + (f" including {redactions} redaction box(es)" if redactions else "")
+                        + " that are NOT baked into the exported image file. Use 'Flatten & replace' before "
+                        "sharing, or treat the raw image as unredacted."
+                    )
                 if attachment is None:
                     entry["status"] = "missing_database_record"
                     screenshot_manifest.append(entry)

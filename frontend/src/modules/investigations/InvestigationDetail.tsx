@@ -4,6 +4,8 @@ import { api } from "../../api/client";
 import { Card } from "../../components/Card";
 import { Badge, priorityLevel, priorityTone } from "../../components/Badge";
 import { CopilotPanel } from "../copilot/CopilotPanel";
+import { AnnotatedImage } from "../evidence/AnnotatedImage";
+import { AnnotationEditor } from "../evidence/AnnotationEditor";
 import type { EvidenceAttachment, Investigation, InvestigationStatus, PracticeLab } from "../../types";
 import { LanguageSelector, useLearningLanguage } from "../practice/LearningLanguage";
 
@@ -38,6 +40,7 @@ export default function InvestigationDetail() {
   const [uploadCaption, setUploadCaption] = useState("");
   const [uploading, setUploading] = useState(false);
   const [compareIds, setCompareIds] = useState<number[]>([]);
+  const [annotatingId, setAnnotatingId] = useState<number | null>(null);
   const [practiceLabs, setPracticeLabs] = useState<PracticeLab[]>([]);
   const [learningLanguage] = useLearningLanguage();
 
@@ -347,18 +350,28 @@ export default function InvestigationDetail() {
                     key={a.id}
                     className={`rounded-md border p-2 ${compareIds.includes(a.id) ? "border-vajra-accent" : "border-vajra-border/60"}`}
                   >
-                    <img
-                      src={a.url}
-                      alt={a.caption || a.filename}
-                      className="mb-2 h-24 w-full cursor-pointer rounded object-cover"
-                      onClick={() => toggleCompare(a.id)}
-                    />
+                    <div className="mb-2 cursor-pointer" onClick={() => toggleCompare(a.id)}>
+                      <AnnotatedImage
+                        src={a.url}
+                        alt={a.caption || a.filename}
+                        annotations={a.annotations ?? []}
+                        className="h-24 rounded"
+                      />
+                    </div>
                     <p className="truncate text-[11px] text-slate-400" title={a.caption}>
                       {a.caption || a.filename}
+                      {(a.annotations?.length ?? 0) > 0 && (
+                        <span className="ml-1 text-vajra-accent2">· {a.annotations.length} mark{a.annotations.length === 1 ? "" : "s"}</span>
+                      )}
                     </p>
-                    <button onClick={() => onDeleteEvidence(a.id)} className="mt-1 text-[11px] text-rose-400 hover:underline">
-                      Delete
-                    </button>
+                    <div className="mt-1 flex gap-2 text-[11px]">
+                      <button onClick={() => setAnnotatingId(a.id)} className="text-vajra-accent2 hover:underline">
+                        Annotate
+                      </button>
+                      <button onClick={() => onDeleteEvidence(a.id)} className="text-rose-400 hover:underline">
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -368,7 +381,12 @@ export default function InvestigationDetail() {
                     const a = evidence.find((e) => e.id === id)!;
                     return (
                       <div key={id}>
-                        <img src={a.url} alt={a.caption} className="w-full rounded border border-vajra-border" />
+                        <AnnotatedImage
+                          src={a.url}
+                          alt={a.caption}
+                          annotations={a.annotations ?? []}
+                          className="rounded border border-vajra-border"
+                        />
                         <p className="mt-1 text-xs text-slate-500">{a.caption || a.filename}</p>
                       </div>
                     );
@@ -378,6 +396,22 @@ export default function InvestigationDetail() {
             </>
           )}
         </Card>
+
+        {annotatingId !== null && (() => {
+          const target = evidence.find((a) => a.id === annotatingId);
+          if (!target) return null;
+          return (
+            <AnnotationEditor
+              projectId={projectId}
+              investigationId={investigationId}
+              attachment={target}
+              onSaved={(updated) =>
+                setEvidence((prev) => prev.map((a) => (a.id === updated.id ? updated : a)))
+              }
+              onClose={() => setAnnotatingId(null)}
+            />
+          );
+        })()}
 
         <Card className="mb-6">
           <h3 className="mb-1 text-sm font-semibold text-slate-100">False Positive Checklist</h3>

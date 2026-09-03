@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class EvidenceAttachmentOut(BaseModel):
@@ -13,8 +13,14 @@ class EvidenceAttachmentOut(BaseModel):
     content_type: str
     size_bytes: int
     caption: str
+    annotations: list[dict] = Field(default_factory=list)
     uploaded_at: datetime
     url: str
+
+
+class EvidenceAttachmentUpdate(BaseModel):
+    caption: str | None = Field(default=None, max_length=2000)
+    annotations: list[dict] | None = None
 
 
 class MaskedTransactionOut(BaseModel):

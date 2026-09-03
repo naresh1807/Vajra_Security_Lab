@@ -599,6 +599,20 @@ export interface CreateInvestigationPayload {
   linked_asset_id?: number | null;
 }
 
+export type AnnotationType = "highlight" | "redact" | "arrow" | "label";
+
+export interface EvidenceAnnotation {
+  type: AnnotationType;
+  x: number;
+  y: number;
+  w?: number;
+  h?: number;
+  x2?: number;
+  y2?: number;
+  text?: string;
+  color: string;
+}
+
 export interface EvidenceAttachment {
   id: number;
   project_id: number;
@@ -607,6 +621,7 @@ export interface EvidenceAttachment {
   content_type: string;
   size_bytes: number;
   caption: string;
+  annotations: EvidenceAnnotation[];
   uploaded_at: string;
   url: string;
 }
