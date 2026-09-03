@@ -16,6 +16,7 @@ from app.history.router import router as history_router
 from app.identities.router import router as identities_router
 from app.investigations.router import router as investigations_router
 from app.js_inspector.router import router as js_inspector_router
+from app.parameters.router import router as parameters_router
 from app.practice.router import router as practice_router
 from app.projects.router import router as projects_router
 from app.recon.router import router as recon_router
@@ -60,6 +61,7 @@ app.include_router(history_router)
 app.include_router(identities_router)
 app.include_router(js_inspector_router)
 app.include_router(api_mapper_router)
+app.include_router(parameters_router)
 app.include_router(analyzer_router)
 app.include_router(diff_router)
 app.include_router(investigations_router)

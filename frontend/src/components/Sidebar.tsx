@@ -14,6 +14,7 @@ const NAV: NavItem[] = [
   { label: "Attack Surface", to: "/projects", phase: "inside a project" },
   { label: "HTTP Inspector", to: "/projects", phase: "inside a project" },
   { label: "API Mapper", to: "/projects", phase: "inside a project" },
+  { label: "Parameters", to: "/projects", phase: "inside a project" },
   { label: "JS Inspector", to: "/projects", phase: "inside a project" },
   { label: "Analyzer", to: "/projects", phase: "inside a project" },
   { label: "Vajra Diff", to: "/projects", phase: "inside a project" },

@@ -255,6 +255,25 @@ export interface ApiMap {
   total_endpoints: number;
 }
 
+export interface ParameterInsight {
+  name: string;
+  classification: string;
+  locations: string[];
+  sources: string[];
+  schema_types: string[];
+  required: boolean;
+  observed_endpoint_count: number;
+  endpoints: string[];
+  value_shapes: string[];
+  review_areas: string[];
+  note: string;
+}
+
+export interface ParameterInventory {
+  parameters: ParameterInsight[];
+  total_parameters: number;
+}
+
 export type AnalyzerClassification = "informational" | "interesting" | "needs_review" | "potential_finding";
 
 export interface AnalyzerFinding {

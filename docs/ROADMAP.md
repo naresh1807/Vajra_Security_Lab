@@ -31,13 +31,22 @@ Still open under this heading: the "beginner → professional transition"
 pipeline, fewer confirmations — and mode-awareness in the inline
 per-page explanations (currently only the Copilot panel reacts).
 
-### A2. Parameter Intelligence — §21, Phase 3
-Parameters are captured per endpoint (`surface/models.py`
-`query_parameters` / `parameter_details`) but never aggregated. Build a
-project-scoped parameter inventory: name, observed endpoint count,
-inferred classification (numeric object id, UUID, token, free text),
-and suggested review areas. No new outbound traffic — this is a
-computed view over existing `DiscoveredEndpoint` rows.
+### A2. Parameter Intelligence — §21, Phase 3 — DONE
+`backend/app/parameters/` is a computed view (no table, no outbound
+traffic) that aggregates every parameter seen for a project from three
+existing sources: HTTP Inspector history (query names + value *shapes*),
+discovered endpoints (`parameter_details`, `query_parameters`, and
+`{name}` path placeholders), and JS Inspector API_ROUTE findings. Each
+parameter gets a transparent classification (numeric / UUID / opaque
+identifier, credential, pagination, sort-filter, redirect, file, boolean,
+free-form), its review areas (§21 "potential areas"), locations, sources,
+schema types, required flag, and observed-endpoint count. Raw values
+never leave the backend - only `numeric` / `uuid` / `boolean-like` /
+`free text`, and nothing at all for credential-shaped names.
+`GET /api/projects/{id}/parameters`, page at `/projects/:id/parameters`,
+covered by `backend/tests/test_parameters.py` (12 tests). Not a
+vulnerability claim - "Do not classify the parameter itself as
+vulnerable" (§21) is enforced by wording throughout.
 
 ### A3. Personal Learning Analytics + Skill Map — §39, §40, §43
 Not started. Derive competencies (Recon, HTTP, API, Access Control,
@@ -125,7 +134,7 @@ revisit only if cipher/protocol inspection becomes a requirement.
 
 1. ~~`git init` + first commit~~ — done.
 2. ~~A1 Hunt Mode (Copilot verbosity + switcher)~~ — done, first pass.
-3. A2 Parameter Intelligence — high hunting value, computed over existing data.
+3. ~~A2 Parameter Intelligence~~ — done.
 4. A4 + A5 — remaining core analysis depth.
 5. A3 Learning Analytics — the "Learn" pillar of the tagline.
 6. Section C — production deployment when ready to host.

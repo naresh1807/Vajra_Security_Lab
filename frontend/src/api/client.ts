@@ -18,6 +18,7 @@ import type {
   InvestigationStatus,
   JsFile,
   NextBestAction,
+  ParameterInventory,
   Project,
   ProjectDetail,
   Readiness,
@@ -228,6 +229,9 @@ export const api = {
   listJsFiles: (projectId: number) => request<JsFile[]>(`/projects/${projectId}/js/files`),
 
   getApiMap: (projectId: number) => request<ApiMap>(`/projects/${projectId}/api-map`),
+
+  getParameterInventory: (projectId: number) =>
+    request<ParameterInventory>(`/projects/${projectId}/parameters`),
 
   analyzeTransaction: (projectId: number, txId: number) =>
     request<AnalyzerReport>(`/projects/${projectId}/analyzer/transactions/${txId}`),

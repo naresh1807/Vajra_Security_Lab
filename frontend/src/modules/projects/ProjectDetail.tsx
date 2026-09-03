@@ -193,6 +193,12 @@ export default function ProjectDetail() {
               API Mapper →
             </Link>
             <Link
+              to={`/projects/${projectId}/parameters`}
+              className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
+            >
+              Parameters →
+            </Link>
+            <Link
               to={`/projects/${projectId}/analyzer`}
               className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
             >
