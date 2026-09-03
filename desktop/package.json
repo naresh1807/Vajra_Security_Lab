@@ -1,0 +1,47 @@
+{
+  "name": "vajra-security-lab-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vajra Security Lab as a standalone desktop app (Electron shell around the bundled FastAPI backend).",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "node start.cjs",
+    "build:frontend": "npm --prefix ../frontend install && npm --prefix ../frontend run build",
+    "predist": "npm run build:frontend",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.vajra.securitylab",
+    "productName": "Vajra Security Lab",
+    "directories": { "output": "out" },
+    "asar": true,
+    "files": ["main.cjs", "start.cjs"],
+    "extraResources": [
+      { "from": "../frontend/dist", "to": "frontend/dist" },
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!.pytest_cache/**",
+          "!tests/**",
+          "!*.db",
+          "!.vajra-data.key",
+          "!.env",
+          "!uploads/**"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "Vajra-Security-Lab-Setup-${version}.${ext}"
+    },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+  }
+}

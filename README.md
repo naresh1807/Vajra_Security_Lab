@@ -316,6 +316,26 @@ npm run dev
 Opens on `http://localhost:5173` (or the next free port) and proxies
 `/api/*` to the backend on `:8000` — see `vite.config.ts`.
 
+### Desktop app (Electron)
+
+`desktop/` wraps Vajra as a standalone desktop application: an Electron
+shell that starts the bundled backend on a private loopback port (the
+backend also serves the built UI, so it's one origin), waits for the
+health check, and opens a window on it. The SQLite database, evidence
+vault, and encryption key live under the OS user-data directory, not in
+the app bundle.
+
+```powershell
+cd desktop
+npm install
+npm start        # needs backend/.venv and a built frontend/dist
+npm run dist     # builds an installer into desktop/out/
+```
+
+The packaged app bundles `backend/.venv`, whose native extensions are
+platform-specific, so an installer is built per target OS. See
+`desktop/README.md`.
+
 ### Try the full loop
 
 1. Open the frontend → **New Project** → fill in a target you're
@@ -424,7 +444,9 @@ frontend/src/
   api/client.ts        typed fetch client
   types.ts             shared types mirroring backend schemas
 
+desktop/               Electron shell - runs the bundled backend + UI as a desktop app
 docs/PRODUCT_SPEC.md   the full 50-section product vision this build is working toward
+docs/ROADMAP.md        every post-MVP feature and its status (all built)
 ```
 
 ## Roadmap

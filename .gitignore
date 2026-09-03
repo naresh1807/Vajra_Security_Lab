@@ -21,6 +21,10 @@ frontend/dist/
 frontend/.vite/
 frontend/tsconfig.tsbuildinfo
 
+# Desktop (Electron) build artifacts
+desktop/node_modules/
+desktop/out/
+
 # Editor / OS
 .vscode/
 .idea/

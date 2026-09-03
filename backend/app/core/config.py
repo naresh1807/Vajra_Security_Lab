@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     app_name: str = "Vajra Security Lab"
     database_url: str = "sqlite:///./vajra.db"
 
+    # When set to a built frontend directory, the API also serves the SPA at
+    # `/` (used by the desktop app so the UI and API are same-origin).
+    static_dir: str = ""
+
     # CORS - the Vite dev server default origin.
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 

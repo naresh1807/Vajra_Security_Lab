@@ -89,3 +89,28 @@ app.include_router(reports_router)
 app.include_router(practice_router)
 app.include_router(copilot_router)
 app.include_router(skills_router)
+
+
+# Optional: serve the built frontend at `/` so the desktop app runs the UI
+# and API on one origin. Mounted last, so every `/api/*` route above wins.
+if settings.static_dir:
+    from pathlib import Path
+
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+    from starlette.staticfiles import StaticFiles
+
+    _static_root = Path(settings.static_dir).expanduser().resolve()
+    if _static_root.is_dir():
+
+        class _SPAStaticFiles(StaticFiles):
+            """Serve index.html for client-side routes (e.g. /projects/5)."""
+
+            async def get_response(self, path: str, scope):  # type: ignore[override]
+                try:
+                    return await super().get_response(path, scope)
+                except StarletteHTTPException as exc:
+                    if exc.status_code == 404:
+                        return await super().get_response("index.html", scope)
+                    raise
+
+        app.mount("/", _SPAStaticFiles(directory=str(_static_root), html=True), name="spa")
