@@ -11,16 +11,25 @@ at the bottom.
 
 ## A. Product-vision features (partial or not built)
 
-### A1. Hunt Mode is cosmetic — §3, §4, §42
-`HuntMode` (`guided` / `standard` / `advanced`) is stored on the project
-(`backend/app/projects/models.py`) and rendered as a badge, but nothing
-consumes it. To close this:
-- Gate the "Why this matters / what to check / false positives / evidence"
-  panels and mini-lessons on `guided` mode; collapse them in `standard`;
-  hide them in `advanced`.
-- Reduce Copilot Next-Best-Action verbosity by mode.
-- Add the "beginner → professional transition" (§42): surface tool
-  commands, let the user drive the recon pipeline, fewer confirmations.
+### A1. Hunt Mode drives Copilot verbosity — §3, §4, §42 — DONE (first pass)
+`HuntMode` (`guided` / `standard` / `advanced`) now changes what the Hunt
+Copilot panel volunteers:
+- `guided` — everything inline: what / why / checklist / false-positive
+  notes / evidence needed, the 60-second concept card, and Next-Best-Action
+  with alternatives (unchanged from before).
+- `standard` — what / why / checklist inline; false-positive + evidence
+  behind one disclosure; the concept one click away; no NBA alternatives.
+- `advanced` — what / why only; all other guidance behind a single
+  "Show Copilot guidance" disclosure; no concept card; compact NBA.
+The mode is switchable after creation from the project header
+(`useProjectMode` + `PATCH /api/projects/{id}`, covered by
+`backend/tests/test_projects.py`); a `vajra:project-updated` window event
+refreshes the panel live. `CreateProject` shows each mode's blurb.
+
+Still open under this heading: the "beginner → professional transition"
+(§42) — surfacing tool commands, letting the user drive the recon
+pipeline, fewer confirmations — and mode-awareness in the inline
+per-page explanations (currently only the Copilot panel reacts).
 
 ### A2. Parameter Intelligence — §21, Phase 3
 Parameters are captured per endpoint (`surface/models.py`
@@ -114,9 +123,10 @@ revisit only if cipher/protocol inspection becomes a requirement.
 
 ## Suggested sequence
 
-1. `git init` + first commit (nothing is tracked right now).
-2. A1 Hunt Mode — the plumbing exists; it's the spec's central UX promise.
+1. ~~`git init` + first commit~~ — done.
+2. ~~A1 Hunt Mode (Copilot verbosity + switcher)~~ — done, first pass.
 3. A2 Parameter Intelligence — high hunting value, computed over existing data.
 4. A4 + A5 — remaining core analysis depth.
 5. A3 Learning Analytics — the "Learn" pillar of the tagline.
 6. Section C — production deployment when ready to host.
+7. A1 remainder — the §42 beginner→professional transition.

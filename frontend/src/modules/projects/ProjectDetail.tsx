@@ -4,7 +4,10 @@ import { api } from "../../api/client";
 import { Card, StatTile } from "../../components/Card";
 import { Badge, priorityLevel, priorityTone } from "../../components/Badge";
 import { CopilotPanel } from "../copilot/CopilotPanel";
-import type { Asset, ProjectDetail as ProjectDetailType, ReconJob, ScopeCheckResponse } from "../../types";
+import { HUNT_MODE_META, notifyProjectUpdated } from "./useProjectMode";
+import type { Asset, HuntMode, ProjectDetail as ProjectDetailType, ReconJob, ScopeCheckResponse } from "../../types";
+
+const HUNT_MODES: HuntMode[] = ["guided", "standard", "advanced"];
 
 const ACTIVE_JOB_STATUSES = ["pending", "running"];
 
@@ -95,6 +98,16 @@ export default function ProjectDetail() {
     setAssets((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
   }
 
+  async function onChangeMode(mode: HuntMode) {
+    setProject((prev) => (prev ? { ...prev, mode } : prev));
+    try {
+      await api.updateProject(projectId, { mode });
+      notifyProjectUpdated(); // refresh the Copilot panel beside us
+    } catch {
+      await refresh(); // roll back to the server's value
+    }
+  }
+
   if (!project && loadError) {
     return (
       <div className="p-8">
@@ -139,7 +152,21 @@ export default function ProjectDetail() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="accent">{project.mode}</Badge>
+            <label className="flex items-center gap-1.5 rounded-md border border-vajra-accent/40 bg-vajra-accent/10 px-2 py-1 text-xs text-violet-200">
+              <span className="text-[10px] uppercase tracking-wide text-violet-300/80">Hunt Mode</span>
+              <select
+                value={project.mode}
+                onChange={(e) => onChangeMode(e.target.value as HuntMode)}
+                title={HUNT_MODE_META[project.mode].blurb}
+                className="bg-transparent text-xs text-violet-100 focus:outline-none [&>option]:bg-vajra-panel [&>option]:text-slate-200"
+              >
+                {HUNT_MODES.map((m) => (
+                  <option key={m} value={m}>
+                    {HUNT_MODE_META[m].label}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Badge tone={project.status === "active" ? "allowed" : "neutral"}>{project.status}</Badge>
             <Link
               to={`/projects/${projectId}/http`}

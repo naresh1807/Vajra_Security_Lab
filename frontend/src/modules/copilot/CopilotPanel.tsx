@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import { Card } from "../../components/Card";
+import { HUNT_MODE_META, useProjectMode } from "../projects/useProjectMode";
 import type { Asset, Explanation, NextBestAction } from "../../types";
 
 export type CopilotSelection = { kind: "asset"; asset: Asset } | { kind: "header"; headerName: string };
@@ -27,6 +28,13 @@ export function CopilotPanel({
   contextRef?: CopilotContextRef;
 }) {
   const navigate = useNavigate();
+  // Hunt Mode drives how much the Copilot volunteers. `guided` is the
+  // most verbose (and the safe default before the project has loaded);
+  // `standard` and `advanced` progressively collapse guidance.
+  const mode = useProjectMode(projectId) ?? "guided";
+  const guided = mode === "guided";
+  const advanced = mode === "advanced";
+
   const [explanation, setExplanation] = useState<Explanation | null>(null);
   const [nextAction, setNextAction] = useState<NextBestAction | null>(null);
   const [loading, setLoading] = useState(false);
@@ -103,7 +111,12 @@ export function CopilotPanel({
         <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-vajra-accent to-vajra-accent2 text-xs font-bold text-white">
           V
         </div>
-        <h2 className="text-sm font-semibold text-slate-100">Vajra Hunt Copilot</h2>
+        <div>
+          <h2 className="text-sm font-semibold text-slate-100">Vajra Hunt Copilot</h2>
+          <div className="text-[10px] text-slate-500" title={HUNT_MODE_META[mode].blurb}>
+            {HUNT_MODE_META[mode].label} mode
+          </div>
+        </div>
       </div>
 
       {nextAction && (
@@ -112,8 +125,8 @@ export function CopilotPanel({
             Recommended Next Action
           </div>
           <div className="mb-1 text-sm font-medium text-slate-100">{nextAction.headline}</div>
-          <div className="text-xs text-slate-400">{nextAction.reason}</div>
-          {nextAction.alternatives.length > 0 && (
+          {!advanced && <div className="text-xs text-slate-400">{nextAction.reason}</div>}
+          {guided && nextAction.alternatives.length > 0 && (
             <div className="mt-2 text-[11px] text-slate-500">
               Also worth a look: {nextAction.alternatives.join(" · ")}
             </div>
@@ -137,9 +150,27 @@ export function CopilotPanel({
             <div className="mb-2 font-mono text-sm font-semibold text-slate-100">{title}</div>
             <Section title="What Vajra Found">{explanation.what_found}</Section>
             <Section title="Why It May Matter">{explanation.why_it_matters}</Section>
-            <ListSection title="What You Should Check" items={explanation.what_to_check} />
-            <ListSection title="What Would Make It a False Positive" items={explanation.false_positive_notes} />
-            <ListSection title="Evidence You Need" items={explanation.evidence_needed} />
+
+            {/* guided/standard show the checklist inline; advanced folds it away */}
+            {!advanced && <ListSection title="What You Should Check" items={explanation.what_to_check} />}
+            {guided && (
+              <>
+                <ListSection title="What Would Make It a False Positive" items={explanation.false_positive_notes} />
+                <ListSection title="Evidence You Need" items={explanation.evidence_needed} />
+              </>
+            )}
+
+            {!guided && (
+              <Collapsible label={advanced ? "Show Copilot guidance" : "Show false-positive checks & evidence"}>
+                {advanced && <ListSection title="What You Should Check" items={explanation.what_to_check} />}
+                <ListSection title="What Would Make It a False Positive" items={explanation.false_positive_notes} />
+                <ListSection title="Evidence You Need" items={explanation.evidence_needed} />
+                {advanced && explanation.mini_lesson && (
+                  <MiniLesson title={explanation.mini_lesson_title} body={explanation.mini_lesson} />
+                )}
+              </Collapsible>
+            )}
+
             {selection.kind === "asset" && (
               <button
                 onClick={onStartInvestigation}
@@ -151,11 +182,18 @@ export function CopilotPanel({
             )}
           </Card>
 
-          {explanation.mini_lesson && (
+          {/* The 60-second concept: a full card in guided, one click away in
+              standard, and only inside the collapsed block in advanced. */}
+          {explanation.mini_lesson && guided && (
             <Card className="border-vajra-accent2/30 bg-vajra-accent2/5">
               <div className="mb-1 text-xs font-semibold text-cyan-300">{explanation.mini_lesson_title}</div>
               <p className="text-xs text-slate-400">{explanation.mini_lesson}</p>
             </Card>
+          )}
+          {explanation.mini_lesson && mode === "standard" && (
+            <Collapsible label={`Show ${explanation.mini_lesson_title ?? "60-second concept"}`}>
+              <MiniLesson title={explanation.mini_lesson_title} body={explanation.mini_lesson} />
+            </Collapsible>
           )}
         </div>
       )}
@@ -226,5 +264,25 @@ function ListSection({ title, items }: { title: string; items: string[] }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+function MiniLesson({ title, body }: { title: string | null; body: string }) {
+  return (
+    <div className="mb-1 rounded-md border border-vajra-accent2/30 bg-vajra-accent2/5 p-2">
+      <div className="mb-1 text-xs font-semibold text-cyan-300">{title}</div>
+      <p className="text-xs text-slate-400">{body}</p>
+    </div>
+  );
+}
+
+function Collapsible({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <details className="mb-2 rounded-md border border-vajra-border/70 bg-vajra-bg/40">
+      <summary className="cursor-pointer select-none px-2 py-1.5 text-[11px] font-medium text-slate-400 hover:text-slate-200">
+        {label}
+      </summary>
+      <div className="px-2 pb-1">{children}</div>
+    </details>
   );
 }

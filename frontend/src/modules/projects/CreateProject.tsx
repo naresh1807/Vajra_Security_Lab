@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import { Card } from "../../components/Card";
+import { HUNT_MODE_META } from "./useProjectMode";
+import type { HuntMode } from "../../types";
 
 function toList(value: string): string[] {
   return value
@@ -20,7 +22,7 @@ export default function CreateProject() {
   const [programRules, setProgramRules] = useState("");
   const [testingRestrictions, setTestingRestrictions] = useState("");
   const [rateLimit, setRateLimit] = useState(1);
-  const [mode, setMode] = useState("guided");
+  const [mode, setMode] = useState<HuntMode>("guided");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -128,8 +130,8 @@ export default function CreateProject() {
             />
           </Field>
 
-          <Field label="Hunt Mode">
-            <select className={inputCls} value={mode} onChange={(e) => setMode(e.target.value)}>
+          <Field label="Hunt Mode" hint={HUNT_MODE_META[mode].blurb}>
+            <select className={inputCls} value={mode} onChange={(e) => setMode(e.target.value as HuntMode)}>
               <option value="guided">Beginner Guided Mode</option>
               <option value="standard">Standard Hunter Mode</option>
               <option value="advanced">Advanced Analysis Mode</option>
