@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.projects.models import HuntMode, ProjectStatus
 
@@ -17,6 +17,9 @@ class ProjectCreate(BaseModel):
     mode: HuntMode = HuntMode.GUIDED
 
 
+RECON_SOURCE_KEYS = ("subfinder", "wayback", "public_metadata", "katana")
+
+
 class ProjectUpdate(BaseModel):
     name: str | None = None
     allowed_domains: list[str] | None = None
@@ -27,6 +30,17 @@ class ProjectUpdate(BaseModel):
     rate_limit_rps: float | None = Field(default=None, gt=0, le=50)
     mode: HuntMode | None = None
     status: ProjectStatus | None = None
+    recon_sources: dict[str, bool] | None = None
+
+    @field_validator("recon_sources")
+    @classmethod
+    def _known_recon_sources(cls, value: dict[str, bool] | None) -> dict[str, bool] | None:
+        if value is None:
+            return value
+        unknown = sorted(set(value) - set(RECON_SOURCE_KEYS))
+        if unknown:
+            raise ValueError(f"Unknown recon source(s): {', '.join(unknown)}. Valid: {', '.join(RECON_SOURCE_KEYS)}.")
+        return value
 
 
 class ProjectOut(BaseModel):
@@ -43,6 +57,7 @@ class ProjectOut(BaseModel):
     rate_limit_rps: float
     mode: HuntMode
     status: ProjectStatus
+    recon_sources: dict[str, bool] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 

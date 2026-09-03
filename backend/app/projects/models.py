@@ -48,6 +48,13 @@ class Project(Base):
     mode: Mapped[HuntMode] = mapped_column(Enum(HuntMode), default=HuntMode.GUIDED)
     status: Mapped[ProjectStatus] = mapped_column(Enum(ProjectStatus), default=ProjectStatus.ACTIVE)
 
+    # Per-project recon pipeline switches (Section 42: "User changes recon
+    # pipeline"). {source_key: bool}. A False disables that optional source
+    # for this project even when the deployment enables it; a True never
+    # overrides a deployment that has turned the source off. crt.sh and the
+    # DNS fallback are always on. See recon/service.py `_recon_source_enabled`.
+    recon_sources: Mapped[dict] = mapped_column(JSON, default=dict)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 

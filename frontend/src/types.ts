@@ -13,9 +13,12 @@ export interface Project {
   rate_limit_rps: number;
   mode: HuntMode;
   status: ProjectStatus;
+  recon_sources: Record<string, boolean>;
   created_at: string;
   updated_at: string;
 }
+
+export type ReconSourceKey = "subfinder" | "wayback" | "public_metadata" | "katana";
 
 export interface ProjectStats {
   assets_discovered: number;

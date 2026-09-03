@@ -15,6 +15,7 @@ from sqlalchemy.pool import StaticPool
 from app.core.database import Base, get_db
 from app.projects.models import HuntMode, Project
 from app.projects.router import router as projects_router
+from app.recon.service import recon_source_enabled
 
 
 def _client_and_session():
@@ -86,3 +87,36 @@ def test_patch_leaves_other_fields_untouched():
         assert project.mode == HuntMode.STANDARD
         assert project.rate_limit_rps == 3.0
         assert project.target == "example.com"
+
+
+def test_patch_persists_recon_source_switches_and_rejects_unknown_keys():
+    client, Session = _client_and_session()
+    project_id = _seed_project(Session)
+
+    ok = client.patch(f"/api/projects/{project_id}", json={"recon_sources": {"wayback": False, "katana": True}})
+    assert ok.status_code == 200
+    assert ok.json()["recon_sources"] == {"wayback": False, "katana": True}
+
+    bad = client.patch(f"/api/projects/{project_id}", json={"recon_sources": {"nmap": True}})
+    assert bad.status_code == 422
+
+
+def test_recon_source_enabled_respects_project_switch_and_deployment(monkeypatch):
+    _, Session = _client_and_session()
+    project_id = _seed_project(Session, recon_sources={"subfinder": False})
+    with Session() as db:
+        project = db.get(Project, project_id)
+
+        # Project turned subfinder off - even though the deployment allows it.
+        monkeypatch.setattr("app.recon.service.settings.subfinder_enabled", True)
+        assert recon_source_enabled(project, "subfinder") is False
+
+        # A project can't force on a source the deployment disabled.
+        project.recon_sources = {"wayback": True}
+        monkeypatch.setattr("app.recon.service.settings.wayback_enabled", False)
+        assert recon_source_enabled(project, "wayback") is False
+
+        # Default (key absent) = on.
+        project.recon_sources = {}
+        monkeypatch.setattr("app.recon.service.settings.wayback_enabled", True)
+        assert recon_source_enabled(project, "wayback") is True

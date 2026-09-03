@@ -39,12 +39,33 @@ from app.projects.models import Project
 from app.recon.models import Asset, AssetSource, AssetType, ReconJob, ReconJobStatus, ReconStage
 from app.recon.dnsx import resolve_with_dnsx
 from app.recon.priority import HIGH_PRIORITY_THRESHOLD, score_hostname
-from app.recon.subfinder import discover_with_subfinder
+from app.recon.subfinder import SubfinderDiscovery, discover_with_subfinder
 from app.recon.pd_httpx import probe_with_httpx
-from app.recon.katana import crawl_with_katana
-from app.recon.wayback import discover_wayback_urls
-from app.surface.metadata import discover_public_metadata
+from app.recon.katana import KatanaDiscovery, crawl_with_katana
+from app.recon.wayback import WaybackDiscovery, discover_wayback_urls
+from app.surface.metadata import PublicMetadataDiscovery, discover_public_metadata
 from app.surface.service import store_katana_discovery, store_public_metadata, store_wayback_discovery
+
+
+# Per-project recon pipeline switches (Section 42). Only these optional
+# sources can be turned off per project; crt.sh and the DNS fallback always
+# run. A project can never enable a source the deployment has disabled.
+_RECON_SOURCE_SETTING = {
+    "subfinder": "subfinder_enabled",
+    "wayback": "wayback_enabled",
+    "public_metadata": "public_metadata_enabled",
+    "katana": "katana_enabled",
+}
+
+
+def recon_source_enabled(project: Project, key: str) -> bool:
+    if not getattr(settings, _RECON_SOURCE_SETTING[key], True):
+        return False
+    return bool((project.recon_sources or {}).get(key, True))
+
+
+async def _resolved(value):
+    return value
 from app.scopeguard.engine import check_scope, rate_limiter
 from app.scopeguard.models import ScopeAuditLog, ScopeDecision
 
@@ -162,8 +183,12 @@ async def run_recon(project_id: int, job_id: int) -> None:
         crtsh_result, dns_resolved, subfinder_result, wayback_result = await asyncio.gather(
             discover_subdomains_crtsh(project.target),
             bruteforce_common_subdomains(project.target),
-            discover_with_subfinder(project.target),
-            discover_wayback_urls(project.target),
+            discover_with_subfinder(project.target)
+            if recon_source_enabled(project, "subfinder")
+            else _resolved(SubfinderDiscovery(error="subfinder is disabled for this project.")),
+            discover_wayback_urls(project.target)
+            if recon_source_enabled(project, "wayback")
+            else _resolved(WaybackDiscovery(error="Wayback URL discovery is disabled for this project.")),
         )
         crtsh_subdomains, crtsh_ok = crtsh_result
         dns_subdomains = set(dns_resolved.keys())
@@ -348,11 +373,15 @@ async def run_recon(project_id: int, job_id: int) -> None:
             else:
                 crawl_urls.extend([f"https://{host}/", f"http://{host}/"])
 
-        metadata_result = await discover_public_metadata(project, crawl_urls)
+        if recon_source_enabled(project, "public_metadata"):
+            metadata_result = await discover_public_metadata(project, crawl_urls)
+        else:
+            metadata_result = PublicMetadataDiscovery()
+            notes.append("Public metadata / spec discovery is disabled for this project.")
         metadata_new_endpoints, metadata_new_documents, metadata_rejections = store_public_metadata(
             db, project.id, metadata_result
         )
-        if settings.public_metadata_enabled:
+        if settings.public_metadata_enabled and recon_source_enabled(project, "public_metadata"):
             successful_metadata = sum(
                 1 for document in metadata_result.documents if document.status_code == 200 and not document.error
             )
@@ -376,7 +405,10 @@ async def run_recon(project_id: int, job_id: int) -> None:
         elif wayback_result.error:
             notes.append(f"Passive Wayback URL discovery did not contribute this run: {wayback_result.error}")
 
-        katana_result = await crawl_with_katana(project, crawl_urls)
+        if recon_source_enabled(project, "katana"):
+            katana_result = await crawl_with_katana(project, crawl_urls)
+        else:
+            katana_result = KatanaDiscovery(error="Katana crawling is disabled for this project.")
         crawled_new = 0
         crawl_rejections = 0
         if katana_result.available and not katana_result.error:

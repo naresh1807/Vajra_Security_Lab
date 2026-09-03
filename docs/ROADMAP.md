@@ -36,8 +36,16 @@ The "beginner → professional transition" (§42) is now partly here too:
   banner on the project page with a one-click CTA; `advanced` projects
   don't (they navigate themselves). `guided` also sees the focus-area
   list and the explanatory blurbs; `standard`/`advanced` don't.
-Still open: letting the user re-order the recon pipeline, and custom
-workflows. `docs/ROADMAP.md` keeps A1 open for those.
+- Per-project recon pipeline switches (§42: "User changes recon
+  pipeline"): `Project.recon_sources` (JSON, migration `b7f2d1a4c8e3`)
+  toggles subfinder / Wayback / public-metadata / Katana per project.
+  A project can only *disable* an optional source, never force on one the
+  deployment turned off (`recon_source_enabled` in `recon/service.py`
+  gates each stage; crt.sh and the DNS fallback always run). Toggles show
+  on the project page for `standard`/`advanced` hunters, not `guided`.
+
+Still open: custom multi-step workflows. `docs/ROADMAP.md` keeps A1 open
+for that alone.
 
 ### A2. Parameter Intelligence — §21, Phase 3 — DONE
 `backend/app/parameters/` is a computed view (no table, no outbound
@@ -207,10 +215,11 @@ revisit only if cipher/protocol inspection becomes a requirement.
 8. ~~A8 recon URL / parameter discovery~~ — done.
 9. ~~A9 screenshot annotate~~ — done.
 10. Section C — production deployment when ready to host.
-11. A1 remainder — mostly done (stage-aware Next-Best-Action + mode-gated
-    guidance); only user-reorderable recon pipeline + custom workflows left.
+11. A1 remainder — mostly done (stage-aware Next-Best-Action, mode-gated
+    guidance, per-project recon pipeline switches); only custom multi-step
+    workflows left.
 12. A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.
 
 Section A: every computed-analysis and evidence feature the spec asks for
-is built. What's left is the A6 UI restructure and the two open A1
-sub-items above - both optional polish.
+is built. What's left is the A6 UI restructure and custom workflows -
+both optional.

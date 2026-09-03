@@ -168,8 +168,10 @@ export const api = {
   getProject: (id: number) => request<ProjectDetail>(`/projects/${id}`),
   createProject: (payload: CreateProjectPayload) =>
     request<Project>("/projects", { method: "POST", body: JSON.stringify(payload) }),
-  updateProject: (id: number, payload: Partial<Pick<Project, "mode" | "status" | "rate_limit_rps">>) =>
-    request<Project>(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  updateProject: (
+    id: number,
+    payload: Partial<Pick<Project, "mode" | "status" | "rate_limit_rps" | "recon_sources">>,
+  ) => request<Project>(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   deleteProject: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
 
   checkScope: (projectId: number, target: string) =>

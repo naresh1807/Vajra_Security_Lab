@@ -6,9 +6,15 @@ import { Badge, priorityLevel, priorityTone } from "../../components/Badge";
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NextStepCard } from "../copilot/NextStepCard";
 import { HUNT_MODE_META, notifyProjectUpdated } from "./useProjectMode";
-import type { Asset, HuntMode, NextBestAction, ProjectDetail as ProjectDetailType, ReconJob, ScopeCheckResponse } from "../../types";
+import type { Asset, HuntMode, NextBestAction, ProjectDetail as ProjectDetailType, ReconJob, ReconSourceKey, ScopeCheckResponse } from "../../types";
 
 const HUNT_MODES: HuntMode[] = ["guided", "standard", "advanced"];
+const RECON_SOURCES: { key: ReconSourceKey; label: string }[] = [
+  { key: "subfinder", label: "subfinder" },
+  { key: "wayback", label: "Wayback URLs" },
+  { key: "public_metadata", label: "robots / sitemap / OpenAPI" },
+  { key: "katana", label: "Katana crawl" },
+];
 
 const ACTIVE_JOB_STATUSES = ["pending", "running"];
 
@@ -112,6 +118,16 @@ export default function ProjectDetail() {
       notifyProjectUpdated(); // refresh the Copilot panel beside us
     } catch {
       await refresh(); // roll back to the server's value
+    }
+  }
+
+  async function onToggleReconSource(key: ReconSourceKey, enabled: boolean) {
+    const next = { ...(project?.recon_sources ?? {}), [key]: enabled };
+    setProject((prev) => (prev ? { ...prev, recon_sources: next } : prev));
+    try {
+      await api.updateProject(projectId, { recon_sources: next });
+    } catch {
+      await refresh();
     }
   }
 
@@ -321,6 +337,29 @@ export default function ProjectDetail() {
               Passive subdomain discovery (certificate transparency + Wayback URLs) → ScopeGuard → DNS
               resolution → live-host probing → technology detection → prioritization.
             </p>
+          )}
+
+          {project.mode !== "guided" && (
+            <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-vajra-border/60 bg-vajra-bg/50 px-3 py-2 text-xs">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                Pipeline sources
+              </span>
+              {RECON_SOURCES.map(({ key, label }) => {
+                const on = project.recon_sources?.[key] !== false;
+                return (
+                  <label key={key} className="flex items-center gap-1.5 text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={on}
+                      disabled={jobActive}
+                      onChange={() => onToggleReconSource(key, !on)}
+                    />
+                    {label}
+                  </label>
+                );
+              })}
+              <span className="text-[10px] text-slate-600">crt.sh + DNS always run</span>
+            </div>
           )}
 
           {latestJob && (
