@@ -44,8 +44,16 @@ The "beginner → professional transition" (§42) is now partly here too:
   gates each stage; crt.sh and the DNS fallback always run). Toggles show
   on the project page for `standard`/`advanced` hunters, not `guided`.
 
-Still open: custom multi-step workflows. `docs/ROADMAP.md` keeps A1 open
-for that alone.
+- Hunt Playbook (§42: "User creates custom workflows"):
+  `Project.playbook` (JSON, migration `c3a9e5f01b46`) is an ordered
+  checklist of steps, seeded from a default authorized-bug-bounty
+  methodology on project creation and fully editable (add / edit / check
+  / remove, debounce-saved via `PATCH /api/projects/{id}`, validated by
+  `app/projects/playbook.py`). Shown as a collapsible card on the project
+  page with a progress bar. Gates nothing - it just keeps the hunter's
+  place across a long engagement.
+
+A1 (§3, §4, §42) is now fully addressed.
 
 ### A2. Parameter Intelligence — §21, Phase 3 — DONE
 `backend/app/parameters/` is a computed view (no table, no outbound

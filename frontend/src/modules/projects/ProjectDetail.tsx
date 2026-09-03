@@ -5,6 +5,7 @@ import { Card, StatTile } from "../../components/Card";
 import { Badge, priorityLevel, priorityTone } from "../../components/Badge";
 import { CopilotPanel } from "../copilot/CopilotPanel";
 import { NextStepCard } from "../copilot/NextStepCard";
+import { HuntPlaybook } from "./HuntPlaybook";
 import { HUNT_MODE_META, notifyProjectUpdated } from "./useProjectMode";
 import type { Asset, HuntMode, NextBestAction, ProjectDetail as ProjectDetailType, ReconJob, ReconSourceKey, ScopeCheckResponse } from "../../types";
 
@@ -393,6 +394,26 @@ export default function ProjectDetail() {
               {latestJob.error && <p className="mt-2 text-xs text-rose-400">{latestJob.error}</p>}
             </div>
           )}
+        </Card>
+
+        {/* Hunt Playbook (Section 42) */}
+        <Card className="mb-6">
+          <details open={project.mode === "guided"}>
+            <summary className="cursor-pointer text-sm font-semibold text-slate-100">
+              Hunt Playbook
+              <span className="ml-2 text-xs font-normal text-slate-500">
+                {project.playbook.filter((s) => s.done).length}/{project.playbook.length} steps
+              </span>
+            </summary>
+            <p className="mb-3 mt-1 text-xs text-slate-500">
+              Your workflow for this engagement - seeded from a standard methodology, yours to edit.
+            </p>
+            <HuntPlaybook
+              projectId={projectId}
+              steps={project.playbook}
+              onChange={(playbook) => setProject((prev) => (prev ? { ...prev, playbook } : prev))}
+            />
+          </details>
         </Card>
 
         {/* Attack surface / asset list */}

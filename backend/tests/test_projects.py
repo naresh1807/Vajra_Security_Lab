@@ -6,14 +6,17 @@ The frontend Copilot panel changes how much it volunteers based on
 so these tests pin that endpoint's contract: it accepts a valid mode,
 persists it, and rejects anything that isn't one of the three.
 """
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.auth.models import User  # noqa: F401 - registers the mapper for create_project
 from app.core.database import Base, get_db
 from app.projects.models import HuntMode, Project
+from app.projects.playbook import DEFAULT_PLAYBOOK_STEPS, default_playbook, validate_playbook, PlaybookError
 from app.projects.router import router as projects_router
 from app.recon.service import recon_source_enabled
 
@@ -99,6 +102,43 @@ def test_patch_persists_recon_source_switches_and_rejects_unknown_keys():
 
     bad = client.patch(f"/api/projects/{project_id}", json={"recon_sources": {"nmap": True}})
     assert bad.status_code == 422
+
+
+def test_default_playbook_is_seeded_and_editable():
+    client, Session = _client_and_session()
+    project_id = _seed_project(Session)
+    with Session() as db:  # create_project seeds this; simulate it here
+        db.get(Project, project_id).playbook = default_playbook()
+        db.commit()
+
+    got = client.get(f"/api/projects/{project_id}").json()["playbook"]
+    assert len(got) == len(DEFAULT_PLAYBOOK_STEPS)
+    assert all(step["done"] is False for step in got)
+
+    got[0]["done"] = True
+    got.append({"id": "", "text": "  My own step  ", "done": False})
+    updated = client.patch(f"/api/projects/{project_id}", json={"playbook": got})
+    assert updated.status_code == 200
+    steps = updated.json()["playbook"]
+    assert steps[0]["done"] is True
+    assert steps[-1]["text"] == "My own step"        # trimmed
+    assert steps[-1]["id"]                            # a real id was assigned
+
+
+def test_playbook_validation_rejects_bad_shapes():
+    with pytest.raises(PlaybookError):
+        validate_playbook("not a list")
+    with pytest.raises(PlaybookError):
+        validate_playbook([{"text": "   "}])
+    with pytest.raises(PlaybookError):
+        validate_playbook([{"text": "x"}] * 100)
+
+
+def test_patch_rejects_an_invalid_playbook_over_the_api():
+    client, Session = _client_and_session()
+    project_id = _seed_project(Session)
+    res = client.patch(f"/api/projects/{project_id}", json={"playbook": [{"done": True}]})
+    assert res.status_code == 422
 
 
 def test_recon_source_enabled_respects_project_switch_and_deployment(monkeypatch):

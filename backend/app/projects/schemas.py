@@ -31,6 +31,7 @@ class ProjectUpdate(BaseModel):
     mode: HuntMode | None = None
     status: ProjectStatus | None = None
     recon_sources: dict[str, bool] | None = None
+    playbook: list[dict] | None = None
 
     @field_validator("recon_sources")
     @classmethod
@@ -58,6 +59,7 @@ class ProjectOut(BaseModel):
     mode: HuntMode
     status: ProjectStatus
     recon_sources: dict[str, bool] = Field(default_factory=dict)
+    playbook: list[dict] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 

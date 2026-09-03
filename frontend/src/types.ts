@@ -14,11 +14,18 @@ export interface Project {
   mode: HuntMode;
   status: ProjectStatus;
   recon_sources: Record<string, boolean>;
+  playbook: PlaybookStep[];
   created_at: string;
   updated_at: string;
 }
 
 export type ReconSourceKey = "subfinder" | "wayback" | "public_metadata" | "katana";
+
+export interface PlaybookStep {
+  id: string;
+  text: string;
+  done: boolean;
+}
 
 export interface ProjectStats {
   assets_discovered: number;

@@ -55,6 +55,11 @@ class Project(Base):
     # DNS fallback are always on. See recon/service.py `_recon_source_enabled`.
     recon_sources: Mapped[dict] = mapped_column(JSON, default=dict)
 
+    # The hunter's own workflow (Section 42: "User creates custom
+    # workflows"). A list of {id, text, done} steps, seeded from a default
+    # methodology on creation and fully editable thereafter.
+    playbook: Mapped[list[dict]] = mapped_column(JSON, default=list)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 

@@ -170,7 +170,7 @@ export const api = {
     request<Project>("/projects", { method: "POST", body: JSON.stringify(payload) }),
   updateProject: (
     id: number,
-    payload: Partial<Pick<Project, "mode" | "status" | "rate_limit_rps" | "recon_sources">>,
+    payload: Partial<Pick<Project, "mode" | "status" | "rate_limit_rps" | "recon_sources" | "playbook">>,
   ) => request<Project>(`/projects/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   deleteProject: (id: number) => request<void>(`/projects/${id}`, { method: "DELETE" }),
 
