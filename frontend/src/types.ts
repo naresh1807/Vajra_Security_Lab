@@ -711,9 +711,18 @@ export interface AskCopilotResponse {
   provider: string;
 }
 
+export interface FocusArea {
+  label: string;
+  detail: string;
+  route: string | null;
+}
+
 export interface NextBestAction {
   headline: string;
   reason: string;
+  cta_label: string | null;
+  cta_route: string | null;
+  focus_areas: FocusArea[];
   recommended_asset_id: number | null;
   recommended_hostname: string | null;
   alternatives: string[];

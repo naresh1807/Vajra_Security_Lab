@@ -17,9 +17,18 @@ class ExplanationOut(BaseModel):
     mini_lesson: str | None = None
 
 
+class FocusAreaOut(BaseModel):
+    label: str
+    detail: str
+    route: str | None = None
+
+
 class NextBestActionOut(BaseModel):
     headline: str
     reason: str
+    cta_label: str | None = None
+    cta_route: str | None = None
+    focus_areas: list[FocusAreaOut] = []
     recommended_asset_id: int | None = None
     recommended_hostname: str | None = None
     alternatives: list[str]

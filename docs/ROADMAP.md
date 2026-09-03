@@ -26,10 +26,18 @@ The mode is switchable after creation from the project header
 `backend/tests/test_projects.py`); a `vajra:project-updated` window event
 refreshes the panel live. `CreateProject` shows each mode's blurb.
 
-Still open under this heading: the "beginner → professional transition"
-(§42) — surfacing tool commands, letting the user drive the recon
-pipeline, fewer confirmations — and mode-awareness in the inline
-per-page explanations (currently only the Copilot panel reacts).
+The "beginner → professional transition" (§42) is now partly here too:
+- The Next-Best-Action engine (`backend/app/copilot/next_action.py`) is
+  stage-aware - it reads the project's real state (assets, endpoints with
+  object ids, mapped auth-flow stages, open/validated investigations,
+  reports) and picks the single most useful next move plus a shortcut
+  route (`cta_route`) and a §26-style "areas worth your attention" list.
+- `guided`/`standard` projects get a prominent recommended-next-step
+  banner on the project page with a one-click CTA; `advanced` projects
+  don't (they navigate themselves). `guided` also sees the focus-area
+  list and the explanatory blurbs; `standard`/`advanced` don't.
+Still open: letting the user re-order the recon pipeline, and custom
+workflows. `docs/ROADMAP.md` keeps A1 open for those.
 
 ### A2. Parameter Intelligence — §21, Phase 3 — DONE
 `backend/app/parameters/` is a computed view (no table, no outbound
@@ -199,8 +207,10 @@ revisit only if cipher/protocol inspection becomes a requirement.
 8. ~~A8 recon URL / parameter discovery~~ — done.
 9. ~~A9 screenshot annotate~~ — done.
 10. Section C — production deployment when ready to host.
-11. A1 remainder — the §42 beginner→professional transition.
+11. A1 remainder — mostly done (stage-aware Next-Best-Action + mode-gated
+    guidance); only user-reorderable recon pipeline + custom workflows left.
 12. A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.
 
-Section A is now down to A1-remainder and A6. Every computed-analysis and
-evidence feature the spec asks for is built.
+Section A: every computed-analysis and evidence feature the spec asks for
+is built. What's left is the A6 UI restructure and the two open A1
+sub-items above - both optional polish.

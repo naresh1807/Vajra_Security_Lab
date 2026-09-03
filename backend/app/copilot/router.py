@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.copilot.knowledge import ask_hunt_copilot, default_provider
+from app.copilot.next_action import compute_next_best_action
 from app.copilot.schemas import AskRequest, AskResponse, ExplainRequest, ExplanationOut, NextBestActionOut
 from app.core.database import get_db
 from app.evidence.masking import mask_body, mask_cookies, mask_headers
@@ -9,7 +10,6 @@ from app.http.models import HttpTransaction
 from app.investigations.models import Investigation
 from app.projects.models import Project
 from app.recon.models import Asset
-from app.recon.priority import HIGH_PRIORITY_THRESHOLD
 
 router = APIRouter(tags=["copilot"])
 
@@ -50,38 +50,9 @@ def explain(payload: ExplainRequest, request: Request, db: Session = Depends(get
 @router.get("/api/projects/{project_id}/copilot/next-best-action", response_model=NextBestActionOut)
 def next_best_action(project_id: int, db: Session = Depends(get_db)) -> NextBestActionOut:
     """Vajra Next-Best-Action Engine (Section 26)."""
-    project = db.get(Project, project_id)
-    if project is None:
+    if db.get(Project, project_id) is None:
         raise HTTPException(status_code=404, detail="Project not found")
-
-    assets = (
-        db.query(Asset)
-        .filter(Asset.project_id == project_id, Asset.reviewed.is_(False))
-        .order_by(Asset.priority_score.desc())
-        .all()
-    )
-
-    if not assets:
-        return NextBestActionOut(
-            headline="No pending high-priority assets.",
-            reason="Either recon hasn't been run yet, or every discovered asset has been marked reviewed.",
-            alternatives=["Run recon to discover new attack surface."],
-        )
-
-    top = assets[0]
-    high_priority = [a for a in assets if a.priority_score >= HIGH_PRIORITY_THRESHOLD]
-    alternatives = [f"{a.hostname} ({a.priority_category or 'general'}, score {a.priority_score})" for a in assets[1:4]]
-
-    return NextBestActionOut(
-        headline=f"Investigate {top.hostname}",
-        reason=(
-            f"{len(high_priority)} high-priority asset(s) found. '{top.hostname}' scored highest "
-            f"({top.priority_score}/100) - {', '.join(top.priority_reasons) if top.priority_reasons else 'standard priority'}."
-        ),
-        recommended_asset_id=top.id,
-        recommended_hostname=top.hostname,
-        alternatives=alternatives,
-    )
+    return NextBestActionOut(**compute_next_best_action(db, project_id))
 
 
 def _build_ask_context(db: Session, project_id: int, payload: AskRequest) -> dict:

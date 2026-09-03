@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../api/client";
 import { Card } from "../../components/Card";
 import { HUNT_MODE_META, useProjectMode } from "../projects/useProjectMode";
+import { NextStepCard } from "./NextStepCard";
 import type { Asset, Explanation, NextBestAction } from "../../types";
 
 export type CopilotSelection = { kind: "asset"; asset: Asset } | { kind: "header"; headerName: string };
@@ -119,20 +120,7 @@ export function CopilotPanel({
         </div>
       </div>
 
-      {nextAction && (
-        <Card className="border-vajra-accent/40 bg-vajra-accent/10">
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-violet-300">
-            Recommended Next Action
-          </div>
-          <div className="mb-1 text-sm font-medium text-slate-100">{nextAction.headline}</div>
-          {!advanced && <div className="text-xs text-slate-400">{nextAction.reason}</div>}
-          {guided && nextAction.alternatives.length > 0 && (
-            <div className="mt-2 text-[11px] text-slate-500">
-              Also worth a look: {nextAction.alternatives.join(" · ")}
-            </div>
-          )}
-        </Card>
-      )}
+      {nextAction && <NextStepCard projectId={projectId} action={nextAction} mode={mode} />}
 
       {!selection && (
         <Card>

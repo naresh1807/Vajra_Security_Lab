@@ -4,8 +4,9 @@ import { api } from "../../api/client";
 import { Card, StatTile } from "../../components/Card";
 import { Badge, priorityLevel, priorityTone } from "../../components/Badge";
 import { CopilotPanel } from "../copilot/CopilotPanel";
+import { NextStepCard } from "../copilot/NextStepCard";
 import { HUNT_MODE_META, notifyProjectUpdated } from "./useProjectMode";
-import type { Asset, HuntMode, ProjectDetail as ProjectDetailType, ReconJob, ScopeCheckResponse } from "../../types";
+import type { Asset, HuntMode, NextBestAction, ProjectDetail as ProjectDetailType, ReconJob, ScopeCheckResponse } from "../../types";
 
 const HUNT_MODES: HuntMode[] = ["guided", "standard", "advanced"];
 
@@ -20,6 +21,7 @@ export default function ProjectDetail() {
   const [jobs, setJobs] = useState<ReconJob[]>([]);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
+  const [nextAction, setNextAction] = useState<NextBestAction | null>(null);
   const [scopeTarget, setScopeTarget] = useState("");
   const [scopeResult, setScopeResult] = useState<ScopeCheckResponse | null>(null);
   const [scopeChecking, setScopeChecking] = useState(false);
@@ -50,6 +52,11 @@ export default function ProjectDetail() {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  useEffect(() => {
+    // Refetched whenever recon jobs or assets change so the recommendation stays current.
+    api.nextBestAction(projectId).then(setNextAction).catch(() => setNextAction(null));
+  }, [projectId, jobs, assets]);
 
   useEffect(() => {
     const latest = jobs[0];
@@ -241,12 +248,21 @@ export default function ProjectDetail() {
           <StatTile label="Recon Runs" value={project.stats.recon_jobs_run} />
         </div>
 
+        {/* Vajra guides guided/standard hunters to the next move; advanced hunters navigate themselves. */}
+        {nextAction && project.mode !== "advanced" && (
+          <div className="mb-6">
+            <NextStepCard projectId={projectId} action={nextAction} mode={project.mode} variant="banner" />
+          </div>
+        )}
+
         {/* Vajra ScopeGuard tester */}
         <Card className="mb-6">
           <h2 className="mb-1 text-sm font-semibold text-slate-100">Vajra ScopeGuard</h2>
-          <p className="mb-3 text-xs text-slate-500">
-            Every target is normalized and checked against this program's scope before any operation touches it.
-          </p>
+          {project.mode === "guided" && (
+            <p className="mb-3 text-xs text-slate-500">
+              Every target is normalized and checked against this program's scope before any operation touches it.
+            </p>
+          )}
           <form onSubmit={onCheckScope} className="flex gap-2">
             <input
               className="flex-1 rounded-md border border-vajra-border bg-vajra-bg px-3 py-2 text-sm text-slate-200 focus:border-vajra-accent focus:outline-none"
@@ -300,10 +316,12 @@ export default function ProjectDetail() {
               </button>
             </div>
           </div>
-          <p className="mb-3 text-xs text-slate-500">
-            Passive subdomain discovery (certificate transparency) → ScopeGuard → DNS resolution → live-host
-            probing → technology detection → prioritization.
-          </p>
+          {project.mode === "guided" && (
+            <p className="mb-3 text-xs text-slate-500">
+              Passive subdomain discovery (certificate transparency + Wayback URLs) → ScopeGuard → DNS
+              resolution → live-host probing → technology detection → prioritization.
+            </p>
+          )}
 
           {latestJob && (
             <div className="rounded-md border border-vajra-border bg-vajra-bg p-3 text-sm">
