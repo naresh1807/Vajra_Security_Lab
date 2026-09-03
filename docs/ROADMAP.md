@@ -116,10 +116,20 @@ card). `backend/tests/test_recon_tool_reference.py` (5 tests). Recon job
 notes still carry what actually ran on a given run; this is the
 "learn the tooling" companion.
 
-### A8. Recon URL + parameter discovery — §7, Phase 3
-Only optional Katana GET-endpoint crawling exists. A general (still
-ScopeGuard-gated, still bounded) URL crawler and parameter-discovery
-stage would fill out the recon pipeline.
+### A8. Recon URL + parameter discovery — §7, Phase 3 — DONE
+`backend/app/recon/wayback.py` adds a passive URL-discovery stage: it
+queries the Internet Archive's Wayback CDX index (a public archive of
+already-crawled pages - never contacts the target), bounded by a URL
+cap, a timeout, and a response-size limit. `store_wayback_discovery`
+runs every historical URL through `sanitize_endpoint_url` (ScopeGuard +
+destructive-path + sensitive-value redaction) and indexes the survivors
+as GET `DiscoveredEndpoint` rows with `source="wayback"` - so they flow
+straight into the API Mapper, Parameter Intelligence, Auth Flow
+Analyzer, and Access Control Workbench. Nothing is fetched. Wired into
+`run_recon` (parallel with subdomain discovery), reported in the job
+summary/notes, `VAJRA_WAYBACK_*` settings, `backend/tests/test_wayback.py`
+(7 tests). General active crawling beyond opt-in Katana remains out of
+scope by design.
 
 ### A9. Screenshot annotate + capture — §32
 Captions only. No drawing/markup, no headless capture (no browser in the
@@ -177,7 +187,10 @@ revisit only if cipher/protocol inspection becomes a requirement.
 5. ~~A5 Access Control Workbench~~ — done.
 6. ~~A3 Learning Analytics / Skill Map~~ — done.
 7. ~~A7 progressive tool disclosure~~ — done.
-8. **A8 recon URL / parameter discovery** — next.
+8. ~~A8 recon URL / parameter discovery~~ — done.
 9. Section C — production deployment when ready to host.
 10. A1 remainder — the §42 beginner→professional transition.
 11. A9 screenshot annotate; A6 four-panel UI (large restructure, only if the page flow proves limiting); A10 deliberately deferred.
+
+Section A is now down to A1-remainder, A9, and A6. Every computed
+analysis feature the spec asks for is built.

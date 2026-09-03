@@ -2,9 +2,11 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
+from app.projects.models import Project
 from app.recon.katana import KatanaDiscovery
 from app.surface.metadata import PublicMetadataDiscovery
 from app.surface.models import CrawlRejection, DiscoveredEndpoint, PublicMetadataDocument
+from app.surface.safety import redact_url_for_log, sanitize_endpoint_url
 
 
 def store_katana_discovery(db: Session, project_id: int, discovery: KatanaDiscovery) -> tuple[int, int]:
@@ -39,6 +41,52 @@ def store_katana_discovery(db: Session, project_id: int, discovery: KatanaDiscov
         db.add(CrawlRejection(project_id=project_id, url=rejection.url, reason=rejection.reason, source="katana"))
     db.commit()
     return new_count, min(len(discovery.rejections), 500)
+
+
+def store_wayback_discovery(
+    db: Session, project: Project, urls: list[str]
+) -> tuple[int, int]:
+    """Index passive Wayback URLs as GET endpoints after ScopeGuard.
+
+    Historical URLs are never fetched - they become inventory rows (so the
+    API Mapper, Auth Flow, and Access Control Workbench see them) and
+    Parameter Intelligence input. Out-of-scope or destructive-looking URLs
+    are recorded as rejections, capped per run.
+    """
+    existing = {
+        (item.normalized_url, item.method.upper()): item
+        for item in db.query(DiscoveredEndpoint).filter(DiscoveredEndpoint.project_id == project.id).all()
+    }
+    now = datetime.now(timezone.utc)
+    new_count = 0
+    rejections: list[tuple[str, str]] = []
+
+    for raw_url in urls:
+        endpoint, reason = sanitize_endpoint_url(project, raw_url)
+        if endpoint is None:
+            rejections.append((redact_url_for_log(raw_url), reason or "Rejected by endpoint safety checks."))
+            continue
+        key = (endpoint.normalized_url, "GET")
+        record = existing.get(key)
+        if record is None:
+            record = DiscoveredEndpoint(
+                project_id=project.id, url=endpoint.url, normalized_url=endpoint.normalized_url,
+                hostname=endpoint.hostname, path=endpoint.path, method="GET",
+                query_parameters=endpoint.query_parameters, source="wayback",
+            )
+            db.add(record)
+            existing[key] = record
+            new_count += 1
+        else:
+            record.query_parameters = sorted(
+                set(record.query_parameters or []) | set(endpoint.query_parameters)
+            )
+            record.last_seen_at = now
+
+    for url, reason in rejections[:500]:
+        db.add(CrawlRejection(project_id=project.id, url=url[:2000], reason=reason, source="wayback"))
+    db.commit()
+    return new_count, min(len(rejections), 500)
 
 
 def store_public_metadata(

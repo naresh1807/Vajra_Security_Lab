@@ -25,7 +25,7 @@ not a mock.
 | **Vajra ScopeGuard** | ✅ | Normalizes any target, checks it against a project's allowed domains/subdomains/exclusions, returns ALLOWED / BLOCKED / MANUAL_REVIEW + reason. Every recon and HTTP Inspector request routes through it and logs to an audit trail - nothing is ever sent to a target it doesn't cover. |
 | **Project creation & dashboard** | ✅ | Program name, target, allowed domains/subdomains, excluded assets, program rules, testing restrictions, rate limit, hunt mode. |
 | **Authentication & ownership** | ✅ | Scrypt-hashed passwords, opaque database-backed sessions in HttpOnly SameSite cookies, double-submit CSRF protection, persistent database-backed login throttling, authentication audit events, active-session review/revocation, project ownership enforcement across every nested project API, and ownership checks for global asset/evidence lookups. The first account safely claims legacy unowned projects. Set `VAJRA_ALLOW_REGISTRATION=false` after provisioning accounts on a hosted deployment. |
-| **Vajra Recon Engine** | ✅ | Subdomain discovery via crt.sh certificate transparency plus a DNS common-name fallback, ScopeGuard-gated and rate-limited live-host probing, and technology detection. Jobs use zero-dependency inline execution for development or durable Redis/RQ queues with independent workers for production. Queue identifiers are persisted and queued jobs can be cancelled before execution. A per-project "Recon Toolchain" view (Section 41) shows, for every pipeline stage, the underlying tool, the exact command with the real target and rate limit substituted in, and a flag-by-flag explanation. |
+| **Vajra Recon Engine** | ✅ | Subdomain discovery via crt.sh certificate transparency plus a DNS common-name fallback, passive URL discovery from the Wayback Machine CDX index (bounded, ScopeGuard-filtered, never fetched), ScopeGuard-gated and rate-limited live-host probing, and technology detection. Jobs use zero-dependency inline execution for development or durable Redis/RQ queues with independent workers for production. Queue identifiers are persisted and queued jobs can be cancelled before execution. A per-project "Recon Toolchain" view (Section 41) shows, for every pipeline stage, the underlying tool, the exact command with the real target and rate limit substituted in, and a flag-by-flag explanation. |
 | **Asset Priority Engine** | ✅ | Transparent keyword/heuristic scoring (API, auth, admin, payment, GraphQL, upload, WebSocket, dev/staging indicators) — every point comes with a stated reason, never a black-box score. |
 | **Vajra HTTP Inspector** | ✅ | Send a request (method/URL/headers/body) to any in-scope target and inspect the full response - status, headers, cookies, body (JSON pretty-printed), size, timing, and detected technologies. Project-scoped controlled identities store authentication headers encrypted at rest, return only header names through profile APIs, and are applied only after explicit selection. Full request history retains masked profile attribution for repeatable access-control tests. |
 | **Vajra JS Inspector** | ✅ | Fetches a JS file (ScopeGuard-gated) and regex-extracts API routes, GraphQL/WebSocket URLs, config references, source-map URLs, and potential secrets (AWS keys, JWTs, generic API-key assignments, private-key blocks) - every secret is masked (first/last 4 chars only) *before* it's ever returned or stored, never as an afterthought. |
@@ -58,8 +58,11 @@ not a mock.
   hosted or untrusted deployment.
 - **Recon is passive-first.** Subdomain discovery combines crt.sh, an
   optional local `subfinder` executable, and a DNS common-name fallback.
+  URL discovery adds the Internet Archive's Wayback CDX index - a lookup
+  against pages already crawled by the Archive, never a request to the
+  target - bounded by a URL cap, timeout, and response-size limit.
   Every normalized result passes through ScopeGuard before storage or live
-  probing. The tool adapter never invokes a shell, enforces time and output
+  probing; historical URLs are indexed as inventory, never fetched. The tool adapter never invokes a shell, enforces time and output
   limits, records the displayed command/version, and treats missing tools as
   an explicitly noted degraded source rather than a failed recon run.
 - **Go-tool integration is deliberately constrained.** `subfinder`, `dnsx`,
@@ -371,7 +374,7 @@ backend/app/
   core/         config, SQLAlchemy session/engine
   projects/     Project model, CRUD, dashboard stats
   scopeguard/   normalize_target, check_scope, rate limiter, audit log
-  recon/        crt.sh + DNS-fallback discovery, live-host probing, priority engine
+  recon/        crt.sh + DNS-fallback + Wayback URL discovery, live-host probing, priority engine
   http/         Vajra HTTP Inspector - scope/rate-limited request sending, response capture
   identities/   Encrypted, project-scoped controlled credential profiles
   js_inspector/ Vajra JS Inspector - regex extraction of routes/URLs/secrets from fetched JS

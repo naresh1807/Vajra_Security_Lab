@@ -48,8 +48,8 @@ export default function Surface() {
         <div>
           <h1 className="text-xl font-semibold text-slate-100">Endpoint Inventory</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Scope-approved GET endpoints from constrained crawling and public metadata. Secret-like query values are
-            redacted before storage.
+            Scope-approved GET endpoints from constrained crawling, public metadata, and passive Wayback Machine
+            history. Nothing here is fetched automatically; secret-like query values are redacted before storage.
           </p>
         </div>
         <Link to={`/projects/${projectId}`} className="text-xs text-vajra-accent2 hover:underline">← Back to Project</Link>

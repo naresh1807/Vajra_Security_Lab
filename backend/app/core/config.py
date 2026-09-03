@@ -75,6 +75,15 @@ class Settings(BaseSettings):
     crtsh_timeout_seconds: float = 20.0
     crtsh_retries: int = 2
 
+    # Passive URL discovery from the Internet Archive Wayback Machine CDX
+    # index. Queries an archive of already-crawled pages - never contacts
+    # the target. Every URL still passes ScopeGuard before storage.
+    wayback_enabled: bool = True
+    wayback_cdx_url: str = "http://web.archive.org/cdx/search/cdx"
+    wayback_timeout_seconds: float = 25.0
+    wayback_max_urls: int = 1000
+    wayback_max_response_bytes: int = 8 * 1024 * 1024
+
     # DNS-based fallback subdomain check. Passive-adjacent: only resolves
     # candidate hostnames via public DNS, never sends the target an HTTP
     # request. Runs alongside crt.sh so recon isn't a single point of
