@@ -24,6 +24,7 @@ from app.recon.router import router as recon_router
 from app.reports.router import router as reports_router
 from app.scopeguard.router import router as scopeguard_router
 from app.surface.router import router as surface_router
+from app.workbench.router import router as workbench_router
 
 app = FastAPI(
     title=settings.app_name,
@@ -66,6 +67,7 @@ app.include_router(parameters_router)
 app.include_router(analyzer_router)
 app.include_router(authflow_router)
 app.include_router(diff_router)
+app.include_router(workbench_router)
 app.include_router(investigations_router)
 app.include_router(evidence_router)
 app.include_router(reports_router)

@@ -217,6 +217,12 @@ export default function ProjectDetail() {
               Diff →
             </Link>
             <Link
+              to={`/projects/${projectId}/access-control`}
+              className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
+            >
+              Access Control →
+            </Link>
+            <Link
               to={`/projects/${projectId}/investigations`}
               className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
             >

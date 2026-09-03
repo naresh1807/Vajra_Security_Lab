@@ -11,6 +11,7 @@ import Parameters from "./modules/parameters/Parameters";
 import AuthFlow from "./modules/authflow/AuthFlow";
 import Analyzer from "./modules/analyzer/Analyzer";
 import Diff from "./modules/diff/Diff";
+import AccessControlWorkbench from "./modules/workbench/AccessControlWorkbench";
 import Investigations from "./modules/investigations/Investigations";
 import Findings from "./modules/investigations/Findings";
 import InvestigationDetail from "./modules/investigations/InvestigationDetail";
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/projects/:id/surface" element={<Surface />} />
         <Route path="/projects/:id/analyzer" element={<Analyzer />} />
         <Route path="/projects/:id/diff" element={<Diff />} />
+        <Route path="/projects/:id/access-control" element={<AccessControlWorkbench />} />
         <Route path="/projects/:id/investigations" element={<Investigations />} />
         <Route path="/projects/:id/investigations/:invId" element={<InvestigationDetail />} />
         <Route path="/projects/:id/findings" element={<Findings />} />

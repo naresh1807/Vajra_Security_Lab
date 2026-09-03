@@ -71,11 +71,20 @@ enforced by design. `GET /api/projects/{id}/auth-flow`, page at
 The per-transaction "Authentication Behavior" analyzer check is
 unchanged and complementary.
 
-### A5. Access Control Workbench — §17
-Covered indirectly by Vajra Diff + Access-Control Scenarios. A dedicated
-workbench would let the hunter pick Session A, Session B, an endpoint,
-and an object identifier, then walk horizontal / vertical / role
-boundary tests with teaching at each step.
+### A5. Access Control Workbench — §17 — DONE
+`backend/app/workbench/` is a computed planning layer over Vajra Diff.
+`teaching.py` holds the four test types (horizontal, vertical, object
+ownership, role boundary) with how-to-set-up / signals-worth-a-finding /
+evidence-needed for each. `service.py` groups the project's captured
+requests by endpoint shape and, per shape, reports a readiness state
+(`ready` / `needs_second_identity` / `no_usable_captures`), a concrete
+next step, and diff-ready `suggested_pairs` (captures that differ only by
+identity). `GET /api/projects/{id}/access-control/workbench`, page at
+`/projects/:id/access-control` (sidebar + project header). HTTP Inspector
+now honors `?identity=<id>` and Diff honors `?a=&b=` so the workbench's
+links land ready to act. `backend/tests/test_access_control_workbench.py`
+(5 tests). Never sends a request - §17's "controlled accounts and
+authorized environments only" is enforced by design.
 
 ### A6. Four-panel workstation UI — §45
 Current UI is page-per-module with a Copilot side panel. The spec
@@ -145,7 +154,9 @@ revisit only if cipher/protocol inspection becomes a requirement.
 1. ~~`git init` + first commit~~ — done.
 2. ~~A1 Hunt Mode (Copilot verbosity + switcher)~~ — done, first pass.
 3. ~~A2 Parameter Intelligence~~ — done.
-4. ~~A4 Authentication Flow Analyzer~~ — done. **A5 Access Control Workbench** next.
-5. A3 Learning Analytics — the "Learn" pillar of the tagline.
-6. Section C — production deployment when ready to host.
-7. A1 remainder — the §42 beginner→professional transition.
+4. ~~A4 Authentication Flow Analyzer~~ — done.
+5. ~~A5 Access Control Workbench~~ — done.
+6. **A3 Learning Analytics — the "Learn" pillar of the tagline** — next.
+7. Section C — production deployment when ready to host.
+8. A1 remainder — the §42 beginner→professional transition.
+9. A7 progressive tool disclosure; A8 recon URL/param discovery; A6 four-panel UI.

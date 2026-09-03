@@ -298,6 +298,61 @@ export interface AuthFlow {
   note: string;
 }
 
+export interface WorkbenchTestType {
+  key: string;
+  name: string;
+  definition: string;
+  how_to_set_up: string[];
+  signals_worth_a_finding: string[];
+  evidence_needed: string[];
+}
+
+export interface WorkbenchCapture {
+  transaction_id: number;
+  method: string;
+  url: string;
+  identity_name: string;
+  identity_profile_id: number | null;
+  controlled_identity: boolean;
+  status_code: number | null;
+  error: boolean;
+}
+
+export interface WorkbenchSuggestedPair {
+  transaction_a_id: number;
+  transaction_b_id: number;
+  identity_a: string;
+  identity_b: string;
+}
+
+export type WorkbenchReadiness =
+  | "ready"
+  | "needs_second_identity"
+  | "no_usable_captures"
+  | "single_capture";
+
+export interface WorkbenchEndpointGroup {
+  pattern: string;
+  methods: string[];
+  has_object_identifier: boolean;
+  distinct_identities: number;
+  distinct_object_identifiers: number;
+  capture_count: number;
+  captures: WorkbenchCapture[];
+  suggested_pairs: WorkbenchSuggestedPair[];
+  readiness: WorkbenchReadiness;
+  next_step: string;
+}
+
+export interface AccessControlWorkbench {
+  test_types: WorkbenchTestType[];
+  identities: Array<{ id: number; name: string; enabled: boolean }>;
+  endpoint_groups: WorkbenchEndpointGroup[];
+  ready_endpoint_count: number;
+  setup_warnings: string[];
+  note: string;
+}
+
 export type AnalyzerClassification = "informational" | "interesting" | "needs_review" | "potential_finding";
 
 export interface AnalyzerFinding {

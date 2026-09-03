@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { Card } from "../../components/Card";
 import { Badge, priorityLevel, priorityTone } from "../../components/Badge";
@@ -14,6 +14,7 @@ export default function Diff() {
   const { id } = useParams<{ id: string }>();
   const projectId = Number(id);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [history, setHistory] = useState<HttpTransaction[]>([]);
   const [aId, setAId] = useState<string>("");
@@ -145,6 +146,16 @@ export default function Diff() {
       setLoading(false);
     }
   }
+
+  // A deep link from the Access Control Workbench: ?a=<txId>&b=<txId> auto-runs the comparison.
+  useEffect(() => {
+    const a = Number(searchParams.get("a"));
+    const b = Number(searchParams.get("b"));
+    if (Number.isInteger(a) && a > 0 && Number.isInteger(b) && b > 0 && a !== b) {
+      void inspectMatrixCell(a, b);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, searchParams]);
 
   async function onCompare(e: React.FormEvent) {
     e.preventDefault();

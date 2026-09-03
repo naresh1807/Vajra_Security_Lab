@@ -1,4 +1,5 @@
 import type {
+  AccessControlWorkbench,
   AnalyzerReport,
   AnalyzerSummary,
   ApiMap,
@@ -235,6 +236,9 @@ export const api = {
     request<ParameterInventory>(`/projects/${projectId}/parameters`),
 
   getAuthFlow: (projectId: number) => request<AuthFlow>(`/projects/${projectId}/auth-flow`),
+
+  getAccessControlWorkbench: (projectId: number) =>
+    request<AccessControlWorkbench>(`/projects/${projectId}/access-control/workbench`),
 
   analyzeTransaction: (projectId: number, txId: number) =>
     request<AnalyzerReport>(`/projects/${projectId}/analyzer/transactions/${txId}`),

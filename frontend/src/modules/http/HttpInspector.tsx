@@ -83,6 +83,16 @@ export default function HttpInspector() {
     loadProfiles();
   }, [loadHistory, loadProfiles]);
 
+  // Deep links (e.g. from the Access Control Workbench) can name a controlled
+  // identity to pre-select; honor it once the profile list has loaded.
+  useEffect(() => {
+    const requestedIdentity = Number(searchParams.get("identity"));
+    if (!Number.isInteger(requestedIdentity) || requestedIdentity <= 0) return;
+    if (profiles.some((profile) => profile.id === requestedIdentity && profile.enabled)) {
+      setSelectedProfileId(String(requestedIdentity));
+    }
+  }, [profiles, searchParams]);
+
   useEffect(() => {
     if (!Number.isInteger(requestedEndpointId) || requestedEndpointId <= 0) return;
     let cancelled = false;

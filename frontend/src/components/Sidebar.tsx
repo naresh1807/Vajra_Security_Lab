@@ -19,6 +19,7 @@ const NAV: NavItem[] = [
   { label: "Auth Flow", to: "/projects", phase: "inside a project" },
   { label: "Analyzer", to: "/projects", phase: "inside a project" },
   { label: "Vajra Diff", to: "/projects", phase: "inside a project" },
+  { label: "Access Control", to: "/projects", phase: "inside a project" },
   { label: "Investigations", to: "/projects", phase: "inside a project" },
   { label: "Findings", to: "/projects", phase: "inside a project" },
   { label: "Evidence", to: "/projects", phase: "inside an investigation" },
