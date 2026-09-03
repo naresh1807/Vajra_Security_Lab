@@ -45,6 +45,16 @@ def get_fernet() -> Fernet:
         raise RuntimeError("VAJRA_DATA_ENCRYPTION_KEY is not a valid Fernet key.") from exc
 
 
+def encryption_health() -> dict:
+    """For GET /api/health - is a usable data-encryption key available?"""
+    try:
+        get_fernet()
+    except Exception as exc:  # noqa: BLE001
+        return {"ready": False, "error": str(exc)[:200]}
+    source = "env" if settings.data_encryption_key.strip() else "key_file"
+    return {"ready": True, "source": source}
+
+
 def encrypt_text(value: str) -> str:
     if value.startswith(PREFIX):
         return value

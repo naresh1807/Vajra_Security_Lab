@@ -63,7 +63,9 @@ class Settings(BaseSettings):
     external_tool_timeout_seconds: int = 120
     external_tool_max_output_bytes: int = 10 * 1024 * 1024
     ai_provider: str = "auto"  # auto | gemini | anthropic
-    gemini_model: str = "gemini-3.7-flash"
+    # A current, generally-available Gemini model. Override with
+    # VAJRA_GEMINI_MODEL if your account has access to a newer one.
+    gemini_model: str = "gemini-2.5-flash"
     gemini_timeout_seconds: float = 30.0
 
     # Passive OSINT sources. crt.sh is a public certificate-transparency

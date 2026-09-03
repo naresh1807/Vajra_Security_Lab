@@ -59,16 +59,42 @@ def init_db() -> None:
     _purge_expired_http_transactions()
 
 
-def migrate_database() -> None:
-    """Upgrade a fresh database or safely adopt a pre-Alembic database."""
+def _alembic_config():
     from pathlib import Path
-    from alembic import command
     from alembic.config import Config
 
     backend_dir = Path(__file__).resolve().parents[2]
     config = Config(str(backend_dir / "alembic.ini"))
     config.set_main_option("script_location", str(backend_dir / "migrations"))
     config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
+    return config
+
+
+def database_health() -> dict:
+    """For GET /api/health - is the DB reachable and at the latest migration?"""
+    from alembic.runtime.migration import MigrationContext
+    from alembic.script import ScriptDirectory
+
+    try:
+        with engine.connect() as connection:
+            current = MigrationContext.configure(connection).get_current_revision()
+    except Exception as exc:  # noqa: BLE001
+        return {"reachable": False, "error": str(exc)[:200], "migrations": "unknown"}
+
+    head = ScriptDirectory.from_config(_alembic_config()).get_current_head()
+    return {
+        "reachable": True,
+        "migrations": "up_to_date" if current == head else "behind",
+        "current_revision": current,
+        "head_revision": head,
+    }
+
+
+def migrate_database() -> None:
+    """Upgrade a fresh database or safely adopt a pre-Alembic database."""
+    from alembic import command
+
+    config = _alembic_config()
 
     table_names = set(inspect(engine).get_table_names())
     if "projects" in table_names and "alembic_version" not in table_names:

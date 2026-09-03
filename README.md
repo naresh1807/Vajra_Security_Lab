@@ -297,10 +297,11 @@ Then run the API normally and start an independent worker from `backend/`:
 .\.venv\Scripts\python.exe -m app.worker
 ```
 
-`GET /api/health` reports the selected queue backend and degrades visibly
-when Redis is configured but unavailable. Vajra does not silently fall back
-to inline execution in that situation, because doing so would hide a broken
-production worker configuration.
+`GET /api/health` reports the queue backend, database reachability and
+migration state, and data-encryption readiness, and its `status` is
+`degraded` if any of them is not healthy. Vajra does not silently fall
+back to inline execution when Redis is configured but unavailable,
+because doing so would hide a broken production worker configuration.
 
 ### Frontend (React + TypeScript + Vite + Tailwind)
 

@@ -177,31 +177,38 @@ revisit only if cipher/protocol inspection becomes a requirement.
 - Per-lab container isolation for Practice labs. They run in-process
   today; the spec wants Docker-isolated labs.
 
-## C. Production operations
+## C. Production operations — deployment artifacts hardened
 
-- **The repo is not under version control.** `git init`, first commit,
-  confirm `.gitignore` covers `backend/.vajra-data.key`, `backend/vajra.db`,
-  `.env`, `frontend/node_modules`, `backend/.venv`.
-- Deploy `docker-compose.production.yml`: PostgreSQL, Redis/RQ, API,
-  worker, TLS-terminating reverse proxy, host firewall, encrypted backups
-  for the database and evidence volume, log collection. See
-  `docs/PRODUCTION.md`.
-- Real values in `.env` (copied from `.env.production.example`), the
-  `VAJRA_ALLOW_REGISTRATION` first-account bootstrap, then lock it back
-  to `false`.
-- Operational checks from `docs/PRODUCTION.md`: `/api/health` reports the
-  queue available, at least one worker connected, restore drills.
+- ~~Repo under version control~~ — done (`main` branch, `.gitignore` /
+  `.gitattributes` cover `.env`, keys, DBs, `node_modules`, `.venv`).
+- `docker-compose.production.yml` reviewed: `worker` now waits for the
+  API to be healthy so migrations run exactly once; `web` has a
+  healthcheck; `VAJRA_ALLOW_REGISTRATION` is env-overridable for the
+  first-account bootstrap; the API healthcheck has a `start_period`.
+  `.dockerignore` added for both images (the frontend `COPY . .` was
+  pulling in `node_modules` and any local `.env`).
+- `GET /api/health` now reports database reachability + migration state
+  and data-encryption readiness alongside the queue, and `status` is
+  `degraded` if any is unhealthy (`backend/tests/test_health.py`).
+- FastAPI startup moved from the deprecated `on_event` to a `lifespan`
+  handler.
+- **Still requires a hosting environment**: provision the host, real
+  `.env` secrets, DNS + TLS termination in front of `127.0.0.1:8080`,
+  firewall, encrypted volume backups, log collection. `docs/PRODUCTION.md`
+  is the checklist. This is the only remaining part of C and it cannot be
+  done from a dev machine.
 
-## D. Known code issues to resolve
+## D. Known code issues — resolved
 
-- `backend/app/core/config.py` sets `gemini_model = "gemini-3.7-flash"`.
-  Verify this against a real Gemini model id before relying on the
-  Gemini-backed Copilot path; the Anthropic provider is the tested one.
-- `.env.production.example` contained a **real** `GEMINI_API_KEY`
-  (confirmed by the owner). It has been replaced with a placeholder and
-  `.gitignore` now excludes every real `.env`. **The exposed key must be
-  revoked/rotated in Google AI Studio** — it cannot be un-leaked. Real
-  secrets live only in an untracked `.env`, never in an `*.example`.
+- ~~`gemini_model = "gemini-3.7-flash"`~~ — corrected to
+  `gemini-2.5-flash` (a current GA model) in `config.py`, `.env.example`,
+  and `docker-compose.production.yml`. Override with `VAJRA_GEMINI_MODEL`.
+- ~~bundled `.venv` missing `psycopg`~~ — installed to match
+  `requirements.txt`; `docs/PRODUCTION.md` notes the local Postgres path.
+- `.env.production.example` had a **real** `GEMINI_API_KEY` (owner
+  confirmed). Replaced with a placeholder twice; `.gitignore` excludes
+  every real `.env`. **The exposed key(s) must be revoked in Google AI
+  Studio** — that is on the owner, outside this repo.
 
 ## Suggested sequence
 

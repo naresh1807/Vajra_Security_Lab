@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.auth.middleware import AuthenticationMiddleware
@@ -8,7 +10,8 @@ from app.api_mapper.router import router as api_mapper_router
 from app.authflow.router import router as authflow_router
 from app.copilot.router import router as copilot_router
 from app.core.config import settings
-from app.core.database import migrate_database
+from app.core.database import database_health, migrate_database
+from app.core.encryption import encryption_health
 from app.core.jobs import queue_health
 from app.diff.router import router as diff_router
 from app.evidence.router import router as evidence_router
@@ -27,10 +30,17 @@ from app.skills.router import router as skills_router
 from app.surface.router import router as surface_router
 from app.workbench.router import router as workbench_router
 
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    migrate_database()
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
     description="AI-assisted professional bug bounty hunting workstation.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -43,15 +53,19 @@ app.add_middleware(
 app.add_middleware(AuthenticationMiddleware)
 
 
-@app.on_event("startup")
-def on_startup() -> None:
-    migrate_database()
-
-
 @app.get("/api/health", tags=["meta"])
 def health() -> dict:
     queue = queue_health()
-    return {"status": "ok" if queue.get("available") else "degraded", "app": settings.app_name, "queue": queue}
+    database = database_health()
+    encryption = encryption_health()
+    healthy = queue.get("available") and database.get("reachable") and database.get("migrations") == "up_to_date" and encryption.get("ready")
+    return {
+        "status": "ok" if healthy else "degraded",
+        "app": settings.app_name,
+        "queue": queue,
+        "database": database,
+        "encryption": encryption,
+    }
 
 
 app.include_router(projects_router)

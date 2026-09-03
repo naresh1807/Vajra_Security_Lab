@@ -38,21 +38,27 @@ services:
       VAJRA_REDIS_URL: redis://redis:6379/0
       VAJRA_DATA_ENCRYPTION_KEY: ${VAJRA_DATA_ENCRYPTION_KEY:?set VAJRA_DATA_ENCRYPTION_KEY}
       VAJRA_SECURE_COOKIES: "true"
-      VAJRA_ALLOW_REGISTRATION: "false"
+      # Set to "true" only to register the first account, then restore "false"
+      # and recreate api + worker (see docs/PRODUCTION.md).
+      VAJRA_ALLOW_REGISTRATION: ${VAJRA_ALLOW_REGISTRATION:-false}
       VAJRA_TRANSACTION_RETENTION_DAYS: ${VAJRA_TRANSACTION_RETENTION_DAYS:-90}
       VAJRA_UPLOAD_DIR: /data/uploads
       VAJRA_CORS_ORIGINS: ${VAJRA_CORS_ORIGINS:-["https://vajra.example.com"]}
       VAJRA_AI_PROVIDER: ${VAJRA_AI_PROVIDER:-auto}
-      VAJRA_GEMINI_MODEL: ${VAJRA_GEMINI_MODEL:-gemini-3.7-flash}
+      VAJRA_GEMINI_MODEL: ${VAJRA_GEMINI_MODEL:-gemini-2.5-flash}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
     volumes:
       - vajra-uploads:/data/uploads
     healthcheck:
+      # Reachability check. Operators should additionally verify the "status"
+      # field is "ok" (GET /api/health also reports database, migrations,
+      # queue, and encryption readiness) - see docs/PRODUCTION.md.
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 40s
 
   worker:
     build: ./backend
@@ -61,6 +67,9 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
+      # Wait for the API to be healthy so database migrations run once, in
+      # the API, rather than racing between the two processes on startup.
+      api: { condition: service_healthy }
     environment: *backend-env
     volumes:
       - vajra-uploads:/data/uploads
@@ -72,6 +81,11 @@ services:
       api: { condition: service_healthy }
     ports:
       - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   vajra-db:
