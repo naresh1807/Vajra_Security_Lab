@@ -199,6 +199,12 @@ export default function ProjectDetail() {
               Parameters →
             </Link>
             <Link
+              to={`/projects/${projectId}/auth-flow`}
+              className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
+            >
+              Auth Flow →
+            </Link>
+            <Link
               to={`/projects/${projectId}/analyzer`}
               className="rounded-md border border-vajra-border px-3 py-1.5 text-xs text-slate-300 hover:bg-white/5"
             >

@@ -8,6 +8,7 @@ import HttpInspector from "./modules/http/HttpInspector";
 import JsInspector from "./modules/js/JsInspector";
 import ApiMapper from "./modules/api/ApiMapper";
 import Parameters from "./modules/parameters/Parameters";
+import AuthFlow from "./modules/authflow/AuthFlow";
 import Analyzer from "./modules/analyzer/Analyzer";
 import Diff from "./modules/diff/Diff";
 import Investigations from "./modules/investigations/Investigations";
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/projects/:id/js" element={<JsInspector />} />
         <Route path="/projects/:id/api-map" element={<ApiMapper />} />
         <Route path="/projects/:id/parameters" element={<Parameters />} />
+        <Route path="/projects/:id/auth-flow" element={<AuthFlow />} />
         <Route path="/projects/:id/surface" element={<Surface />} />
         <Route path="/projects/:id/analyzer" element={<Analyzer />} />
         <Route path="/projects/:id/diff" element={<Diff />} />

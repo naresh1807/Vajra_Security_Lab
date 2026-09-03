@@ -5,6 +5,7 @@ from app.auth.router import router as auth_router
 
 from app.analyzer.router import router as analyzer_router
 from app.api_mapper.router import router as api_mapper_router
+from app.authflow.router import router as authflow_router
 from app.copilot.router import router as copilot_router
 from app.core.config import settings
 from app.core.database import migrate_database
@@ -63,6 +64,7 @@ app.include_router(js_inspector_router)
 app.include_router(api_mapper_router)
 app.include_router(parameters_router)
 app.include_router(analyzer_router)
+app.include_router(authflow_router)
 app.include_router(diff_router)
 app.include_router(investigations_router)
 app.include_router(evidence_router)

@@ -54,12 +54,22 @@ Auth, Reporting) from counts already in the DB (transactions analyzed,
 investigations by category, reports generated) and render skill bars on
 the dashboard. Read-only aggregation, same pattern as `history/`.
 
-### A4. Authentication Flow Analyzer — §18
-Today: a per-transaction "Authentication Behavior" analyzer check.
-Missing: the mapped flow (registration → verification → login → session
-creation → password change → password reset → logout) with each stage
-flagged for manual review. Could be a guided checklist seeded from
-discovered endpoints rather than an automated crawler.
+### A4. Authentication Flow Analyzer — §18 — DONE
+`backend/app/authflow/` maps the canonical flow (registration → email
+verification → login → MFA → session/token issuance → account management
+→ password change → password reset → logout) from paths Vajra has
+already seen (HTTP history, discovered endpoints, JS routes, public
+metadata). `assign_stage` is a pure precedence rule (reset before change
+before login; MFA `verify` before email `verify`; `DELETE /session` →
+logout). Each stage carries a "why it matters" and 3-5 concrete
+manual-review checks (§18's examples: reset-token unpredictability,
+session invalidation, MFA-bypass endpoints, email-change re-auth). A
+dynamic "where to focus" list is built from what was observed. It never
+sends a request - §18's "Do not automatically attack accounts" is
+enforced by design. `GET /api/projects/{id}/auth-flow`, page at
+`/projects/:id/auth-flow`, `backend/tests/test_authflow.py` (8 tests).
+The per-transaction "Authentication Behavior" analyzer check is
+unchanged and complementary.
 
 ### A5. Access Control Workbench — §17
 Covered indirectly by Vajra Diff + Access-Control Scenarios. A dedicated
@@ -135,7 +145,7 @@ revisit only if cipher/protocol inspection becomes a requirement.
 1. ~~`git init` + first commit~~ — done.
 2. ~~A1 Hunt Mode (Copilot verbosity + switcher)~~ — done, first pass.
 3. ~~A2 Parameter Intelligence~~ — done.
-4. A4 + A5 — remaining core analysis depth.
+4. ~~A4 Authentication Flow Analyzer~~ — done. **A5 Access Control Workbench** next.
 5. A3 Learning Analytics — the "Learn" pillar of the tagline.
 6. Section C — production deployment when ready to host.
 7. A1 remainder — the §42 beginner→professional transition.

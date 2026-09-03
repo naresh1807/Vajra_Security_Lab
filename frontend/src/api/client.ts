@@ -2,6 +2,7 @@ import type {
   AnalyzerReport,
   AnalyzerSummary,
   ApiMap,
+  AuthFlow,
   AskCopilotPayload,
   AskCopilotResponse,
   Asset,
@@ -232,6 +233,8 @@ export const api = {
 
   getParameterInventory: (projectId: number) =>
     request<ParameterInventory>(`/projects/${projectId}/parameters`),
+
+  getAuthFlow: (projectId: number) => request<AuthFlow>(`/projects/${projectId}/auth-flow`),
 
   analyzeTransaction: (projectId: number, txId: number) =>
     request<AnalyzerReport>(`/projects/${projectId}/analyzer/transactions/${txId}`),

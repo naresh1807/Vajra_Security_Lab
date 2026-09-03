@@ -274,6 +274,30 @@ export interface ParameterInventory {
   total_parameters: number;
 }
 
+export interface AuthFlowEndpoint {
+  method: string;
+  path: string;
+  sources: string[];
+  sample_url: string | null;
+}
+
+export interface AuthFlowStage {
+  key: string;
+  title: string;
+  why: string;
+  review_checks: string[];
+  observed: boolean;
+  endpoints: AuthFlowEndpoint[];
+}
+
+export interface AuthFlow {
+  stages: AuthFlowStage[];
+  observed_stage_count: number;
+  total_stage_count: number;
+  review_focus: string[];
+  note: string;
+}
+
 export type AnalyzerClassification = "informational" | "interesting" | "needs_review" | "potential_finding";
 
 export interface AnalyzerFinding {
