@@ -1,5 +1,6 @@
 {
   "name": "vajra-security-lab-desktop",
+  "productName": "Vajra Security Lab",
   "version": "0.1.0",
   "private": true,
   "description": "Vajra Security Lab as a standalone desktop app (Electron shell around the bundled FastAPI backend).",
@@ -39,8 +40,8 @@
       }
     ],
     "win": {
-      "target": "nsis",
-      "artifactName": "Vajra-Security-Lab-Setup-${version}.${ext}"
+      "target": ["nsis", "zip"],
+      "artifactName": "Vajra-Security-Lab-${version}-${ext}.${ext}"
     },
     "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
   }

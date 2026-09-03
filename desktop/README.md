@@ -46,11 +46,30 @@ cd desktop
 npm run dist        # runs `npm run build:frontend` first, then electron-builder
 ```
 
-Output lands in `desktop/out/`. On Windows this is an NSIS installer.
+Output in `desktop/out/`:
 
-**Bundling note:** `electron-builder` copies `../backend` — including
-`backend/.venv` — into the app's resources. That venv contains
-platform-specific binaries (cryptography, psycopg, pydantic-core), so an
-installer built on Windows x64 runs only on Windows x64. Build on each
-target platform, or switch to a PyInstaller-frozen backend for a
-cross-platform single binary.
+| File | What |
+|---|---|
+| `Vajra-Security-Lab-<ver>-exe.exe` | NSIS installer (~100 MB) |
+| `Vajra-Security-Lab-<ver>-zip.zip` | portable — unzip and run `Vajra Security Lab.exe` (~130 MB) |
+| `win-unpacked/` | the unpacked app directory |
+
+**winCodeSign on Windows without admin:** electron-builder unpacks a
+`winCodeSign` tool archive that contains macOS symlinks; creating those
+needs a privilege a normal Windows account lacks, and the build aborts.
+Work around it once by pre-extracting the archive without the `darwin`
+folder:
+
+```powershell
+$c = "$env:LOCALAPPDATA\electron-builder\Cache\winCodeSign"
+& "node_modules\7zip-bin\win\x64\7za.exe" x "$c\<downloaded>.7z" -o"$c\winCodeSign-2.6.0" -y "-xr!darwin"
+```
+
+(The app isn't code-signed either way — there's no certificate — so
+Windows SmartScreen will warn on first run.)
+
+**Cross-platform:** `electron-builder` copies `../backend` including
+`backend/.venv`, whose native extensions (cryptography, psycopg,
+pydantic-core) are platform-specific. An installer built on Windows x64
+runs only on Windows x64 — build on each target OS, or freeze the backend
+with PyInstaller for a portable single binary.
