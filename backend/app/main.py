@@ -23,6 +23,7 @@ from app.projects.router import router as projects_router
 from app.recon.router import router as recon_router
 from app.reports.router import router as reports_router
 from app.scopeguard.router import router as scopeguard_router
+from app.skills.router import router as skills_router
 from app.surface.router import router as surface_router
 from app.workbench.router import router as workbench_router
 
@@ -73,3 +74,4 @@ app.include_router(evidence_router)
 app.include_router(reports_router)
 app.include_router(practice_router)
 app.include_router(copilot_router)
+app.include_router(skills_router)

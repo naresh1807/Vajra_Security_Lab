@@ -48,11 +48,21 @@ covered by `backend/tests/test_parameters.py` (12 tests). Not a
 vulnerability claim - "Do not classify the parameter itself as
 vulnerable" (§21) is enforced by wording throughout.
 
-### A3. Personal Learning Analytics + Skill Map — §39, §40, §43
-Not started. Derive competencies (Recon, HTTP, API, Access Control,
-Auth, Reporting) from counts already in the DB (transactions analyzed,
-investigations by category, reports generated) and render skill bars on
-the dashboard. Read-only aggregation, same pattern as `history/`.
+### A3. Personal Learning Analytics + Skill Map — §39, §40, §43 — DONE
+`backend/app/skills/` is a per-user computed view (route `GET /api/skills`,
+not project-scoped - §39's "personal learning" spans every project the
+user owns). Six skills in §40's order - Recon, HTTP, API Analysis,
+Access Control, Authentication, Reporting - each scored 0-100 from
+capped, transparent signals traced to real DB activity (recon jobs
+completed, distinct endpoint shapes exercised, requests sent as a
+controlled identity, scenarios built, findings validated, ...). Practice
+labs feed the skill they teach (idor -> Access Control, cookies -> Auth).
+Bands: not started / getting started / developing / proficient / strong.
+Each skill returns its signal breakdown - no black-box number (§39: "no
+separate course completion"). Full page at `/skills` (10-segment bars +
+per-skill "what produced this score" + grow-it next step); a compact
+"Your Skills" block on the dashboard (§43). `backend/tests/test_skills.py`
+(6 tests, incl. per-user scoping). Suite: 211 passing.
 
 ### A4. Authentication Flow Analyzer — §18 — DONE
 `backend/app/authflow/` maps the canonical flow (registration → email
@@ -156,7 +166,11 @@ revisit only if cipher/protocol inspection becomes a requirement.
 3. ~~A2 Parameter Intelligence~~ — done.
 4. ~~A4 Authentication Flow Analyzer~~ — done.
 5. ~~A5 Access Control Workbench~~ — done.
-6. **A3 Learning Analytics — the "Learn" pillar of the tagline** — next.
-7. Section C — production deployment when ready to host.
+6. ~~A3 Learning Analytics / Skill Map~~ — done.
+7. **Section C — production deployment** — next when ready to host.
 8. A1 remainder — the §42 beginner→professional transition.
 9. A7 progressive tool disclosure; A8 recon URL/param discovery; A6 four-panel UI.
+
+All of section A's medium/high-value items (A1–A5) are done. What's left
+in A is A6 (large front-end restructure, do only if the page-based flow
+proves limiting), A7, A8, A9, and A10 (deliberately deferred).

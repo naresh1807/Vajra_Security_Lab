@@ -10,6 +10,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { label: "Dashboard", to: "/" },
   { label: "Projects", to: "/projects" },
+  { label: "Skill Map", to: "/skills" },
   { label: "Recon", to: "/projects", phase: "inside a project" },
   { label: "Attack Surface", to: "/projects", phase: "inside a project" },
   { label: "HTTP Inspector", to: "/projects", phase: "inside a project" },

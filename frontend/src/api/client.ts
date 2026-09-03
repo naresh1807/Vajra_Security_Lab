@@ -30,6 +30,7 @@ import type {
   PracticeResponse,
   ScopeAuditLogEntry,
   ScopeCheckResponse,
+  SkillMap,
   AuthUser,
   AuthEvent,
   AuthSession,
@@ -149,6 +150,7 @@ export const api = {
   login: (email: string, password: string) =>
     request<AuthUser>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   me: () => request<AuthUser>("/auth/me"),
+  getSkillMap: () => request<SkillMap>("/skills"),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
   listSessions: () => request<AuthSession[]>("/auth/sessions"),
   revokeSession: (sessionId: number) => request<void>(`/auth/sessions/${sessionId}`, { method: "DELETE" }),

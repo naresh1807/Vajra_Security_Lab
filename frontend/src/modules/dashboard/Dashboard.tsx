@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { Card, StatTile } from "../../components/Card";
 import { Badge } from "../../components/Badge";
-import type { Project, ProjectDetail } from "../../types";
+import { SkillBar } from "../skills/SkillBar";
+import type { Project, ProjectDetail, SkillMap } from "../../types";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [details, setDetails] = useState<Record<number, ProjectDetail>>({});
+  const [skillMap, setSkillMap] = useState<SkillMap | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +26,7 @@ export default function Dashboard() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load projects"))
       .finally(() => setLoading(false));
+    api.getSkillMap().then(setSkillMap).catch(() => setSkillMap(null));
   }, []);
 
   const totalAssets = Object.values(details).reduce((sum, d) => sum + d.stats.assets_discovered, 0);
@@ -51,6 +54,28 @@ export default function Dashboard() {
         <StatTile label="Live Hosts" value={totalLive} />
         <StatTile label="High-Priority Assets" value={totalHighPriority} />
       </div>
+
+      {skillMap && (
+        <Card className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">Your Skills</h2>
+            <Link to="/skills" className="text-xs text-vajra-accent2 hover:underline">
+              Full skill map →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+            {skillMap.skills.map((skill) => (
+              <div key={skill.key}>
+                <div className="mb-1 flex items-center justify-between text-xs">
+                  <span className="text-slate-300">{skill.label}</span>
+                  <span className="text-slate-600">{skill.band}</span>
+                </div>
+                <SkillBar level={skill.level} band={skill.band} />
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">Your Hunts</h2>
 

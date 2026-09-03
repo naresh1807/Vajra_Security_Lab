@@ -353,6 +353,45 @@ export interface AccessControlWorkbench {
   note: string;
 }
 
+export interface SkillSignal {
+  label: string;
+  count: number;
+  points: number;
+}
+
+export interface Skill {
+  key: string;
+  label: string;
+  blurb: string;
+  score: number;
+  level: number;
+  band: string;
+  signals: SkillSignal[];
+  next_step: string;
+}
+
+export interface SkillActivity {
+  projects: number;
+  recon_jobs: number;
+  http_requests: number;
+  endpoint_shapes: number;
+  js_files: number;
+  investigations: number;
+  findings: number;
+  reports: number;
+  evidence_files: number;
+  labs_completed: number;
+}
+
+export interface SkillMap {
+  skills: Skill[];
+  activity: SkillActivity;
+  strengths: string[];
+  growth_areas: string[];
+  headline: string;
+  note: string;
+}
+
 export type AnalyzerClassification = "informational" | "interesting" | "needs_review" | "potential_finding";
 
 export interface AnalyzerFinding {

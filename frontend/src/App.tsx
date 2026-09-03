@@ -18,6 +18,7 @@ import InvestigationDetail from "./modules/investigations/InvestigationDetail";
 import Report from "./modules/reports/Report";
 import PracticeLabs from "./modules/practice/PracticeLabs";
 import PracticeLab from "./modules/practice/PracticeLab";
+import SkillMap from "./modules/skills/SkillMap";
 import { useAuth } from "./auth/AuthContext";
 import Login from "./auth/Login";
 import Security from "./auth/Security";
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/projects/:id/findings" element={<Findings />} />
         <Route path="/projects/:id/history" element={<History />} />
         <Route path="/projects/:id/investigations/:invId/report" element={<Report />} />
+        <Route path="/skills" element={<SkillMap />} />
         <Route path="/practice" element={<PracticeLabs />} />
         <Route path="/practice/:labId" element={<PracticeLab />} />
         <Route path="/account/security" element={<Security />} />

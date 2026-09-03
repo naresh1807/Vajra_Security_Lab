@@ -42,6 +42,7 @@ not a mock.
 | **Vajra Report Generator** | ✅ | Auto-drafts editable report fields from an investigation's recorded evidence and notes. Steps use controlled identity names instead of credential values, scenario identities seed the prerequisites, and Markdown export includes the preserved selected comparison cells and setup warnings. The readiness score still requires human validation and never treats a matrix score as confirmed impact. |
 | **Vajra Hunt Copilot** | ✅ | Structured explanations remain deterministic and rule-based. Free-form chat supports Gemini through `GEMINI_API_KEY` and Claude through `ANTHROPIC_API_KEY`, with `VAJRA_AI_PROVIDER=auto|gemini|anthropic`. Gemini is preferred in auto mode when configured. Both providers receive only grounded project context, with transaction secrets masked before the call, and every answer visibly identifies its provider. English and Telugu questions are supported. |
 | **Hunt History** | ✅ | A project-scoped chronological timeline aggregates ScopeGuard decisions, recon jobs, discovered assets, HTTP captures, JavaScript analysis, investigations, and report edits from their authoritative records. Events can be filtered by category and link back to the relevant workspace without duplicating or rewriting audit evidence. |
+| **Personal Bug Bounty Skill Map** | ✅ | A per-user view (spanning every project you own) that scores six skills - Recon, HTTP, API Analysis, Access Control, Authentication, Reporting (Section 40) - from capped, transparent signals traced to real activity (recon jobs completed, distinct endpoint shapes exercised, requests sent as a controlled identity, scenarios built, findings validated...). Practice labs feed the skill they teach. Every score opens to show the exact signal breakdown that produced it - no quizzes, no course to complete (Section 39). Full page plus a compact "Your Skills" block on the dashboard (Section 43). |
 | **Practice Bridge** | ✅ | Five deliberately vulnerable local labs cover BOLA/IDOR, credentialed CORS origin reflection, insecure cookies, missing security headers, and verbose error exposure. The learning catalog, lessons, and guided steps are available in English and Telugu through a persistent language selector. Investigations recommend relevant labs, carry a safe return link into the exercise, and persist started/completed learning progress. Practice traffic remains separate from target evidence and cannot create a ScopeGuard or localhost/SSRF bypass. Per-lab container isolation remains an optional hardening enhancement. |
 
 ## Honest design notes / known limitations
@@ -386,6 +387,7 @@ backend/app/
   reports/      Report Generator - auto-drafted report fields, readiness scoring
   intelligence/ shared technology-fingerprinting heuristics (used by recon + http)
   copilot/      rule-based Hunt Copilot knowledge base + the AIProvider seam
+  skills/       Personal Skill Map - per-user competency scoring from real activity
   history/      read-only project activity aggregation for Hunt History
   copilot/anthropic_provider.py   real Claude-backed provider for free-form chat
   main.py       FastAPI app wiring
@@ -403,6 +405,7 @@ frontend/src/
   modules/workbench/   Access Control Workbench - test-type teaching + per-endpoint comparison planner
   modules/investigations/ Investigations list, Findings (filtered view), detail/edit workspace (evidence lives here too)
   modules/reports/     Report Generator page - editable fields, readiness score, copy-as-markdown
+  modules/skills/      Personal Skill Map page + the shared SkillBar (also on the dashboard)
   modules/copilot/     Hunt Copilot side panel, including the free-form chat box
   components/          Layout, Sidebar, Badge, Card
   api/client.ts        typed fetch client
